@@ -64,6 +64,20 @@ if __name__ == "__main__":
 
     group_input = parser.add_argument_group('Inputs') # Inputs
     group_input.add_argument('-i', '--input', required=True, help="The vcf file to annotate (format: VCF). This vcf must be annotate with annovar.")
+    group_input.add_argument('-c', '--cnv-gene-list', required=False, help="A tab separated file for genes affected by CNV. (format: genename\tannotation).")
+    group_input.add_argument('-p', '--pedigree', required=False, help="Duo trio or more samples: healthy/affected.")
+    group_input.add_argument('-g', '--candidates-genes', required=False, help="Gene/patho panel list.")
+    group_input.add_argument('-t', '--HPO-terms', required=False, help="HPO terms list.")
+    group_input.add_argument('-s', '--secondary-finding-gene-list', required=False, help="Secondary finding gene list.")
+    group_input.add_argument('-r', '--minimum-readDepth', required=False, help="Minimum read depth.")
+    group_input.add_argument('-m', '--mosaic-ratio', required=False, help="Minimum mosaic ratio applied to heterozygous variants.")
+    group_input.add_argument('-f', '--frequency-threshold', required=False, help="Minimum allele frequency.")
+    group_input.add_argument('-b', '--variant-database', required=False, help="A vcf file used as variant database (format: VCF). Useful for variant occurence among samples.")
+    group_input.add_argument('-b', '--variant-database', required=False, help="A vcf file used as variant database (format: VCF). Useful for variant occurence among samples.")
+    group_input.add_argument('-w', '--weight-scores', required=False, help="A score weighting file to weight each score .")
+
+
+
 
     group_output = parser.add_argument_group('Outputs')  # Outputs
     group_output.add_argument('-o', '--output', required=True, help="The output vcf file with annotation (format : VCF)")
