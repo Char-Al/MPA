@@ -320,6 +320,78 @@ def main(args, logger):
     global log
     log = logger
 
+    # dictionnary with default weights or input file with weight related to parameters	
+    global weightedScores
+    weightedScores = {
+    	"clinvar": {
+	     "score":  0,
+	     "weight": 10
+	},
+    	"PTC":  {
+	     "score":  0,
+	     "weight": 10
+	},
+    	"splice":  {
+	     "score":  0,
+	     "weight": 10
+	},
+    	"missense":  {
+	     "score":  0,
+	     "weight": 10
+	},
+	"variantDatabase": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"DP": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"mosaicRate": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"genotype": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"gnomADfrequency": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"HPOrelation": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"candidateGene": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"segregation": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"ACMG59": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"secondHitCNV": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"constrainedGene": {
+	     "score":  0,
+	     "weight": 10
+	},
+	"HPOrelation": {
+	     "score":  0,
+	     "weight": 10
+	}
+
+    }
+    			
+
+
     # TODO: improve this ! already existing on pyVCF
     _Info = collections.namedtuple('Info', ['id', 'num', 'type', 'desc', 'source', 'version'])
     info_MPA_adjusted = _Info("MPA_adjusted", ".", "String", "MPA_adjusted : normalize MPA missense score from 0 to 10", "MPA", "1.1.0")
