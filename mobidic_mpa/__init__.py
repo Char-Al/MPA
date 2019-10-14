@@ -7,7 +7,7 @@ __author__ = 'Mobidic'
 __authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 __email__ = 'h-pegeot@chu-montpellier.fr'
 __status__ = 'prod'
 
@@ -405,10 +405,6 @@ def main(args, logger):
 
     # parse variant databse with custm vcf
     global variantDB
-
-    log.info("toto")
-
-    log.info(args.variant_database)
 
     if args.variant_database is not None:
         
