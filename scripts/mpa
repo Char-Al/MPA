@@ -73,7 +73,6 @@ if __name__ == "__main__":
     group_input.add_argument('-m', '--mosaic-ratio', required=False, help="Minimum mosaic ratio applied to heterozygous variants.")
     group_input.add_argument('-f', '--frequency-threshold', required=False, help="Minimum allele frequency.")
     group_input.add_argument('-b', '--variant-database', required=False, help="A vcf file used as variant database (format: VCF). Useful for variant occurence among samples.")
-    group_input.add_argument('-b', '--variant-database', required=False, help="A vcf file used as variant database (format: VCF). Useful for variant occurence among samples.")
     group_input.add_argument('-w', '--weight-scores', required=False, help="A score weighting file to weight each score .")
 
 

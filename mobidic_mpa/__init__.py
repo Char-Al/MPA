@@ -401,6 +401,41 @@ def main(args, logger):
     info_MPA_impact = _Info("MPA_impact", ".", "String", "MPA_impact : pathogenic predictions (clinvar_pathogenicity, splice_impact, stop and frameshift_impact)", "MPA", "1.1.0")
     info_MPA_ranking = _Info("MPA_ranking", ".", "String", "MPA_ranking : prioritize variants with ranks from 1 to 10", "MPA", "1.1.0")
 
+
+
+    # parse variant databse with custm vcf
+    global variantDB
+
+    log.info("toto")
+
+    log.info(args.variant_database)
+
+    if args.variant_database is not None:
+        
+        with open(args.variant_database, 'r') as v:
+            log.info("Read Variant database")
+            vcfdb_reader = vcf.Reader(v)
+            
+            for recordDB in vcfdb_reader:
+                try:
+                    check_split_variants(recordDB)
+                except SystemExit as e:
+                    log.error(str(recordDB))
+                    log.error(str(e))
+                    continue
+                log.debug(str(recordDB))
+                
+                variantID = str(recordDB.CHROM) + "_" + str(recordDB.POS) + "_" + str(recordDB.REF)+ "_" + str(recordDB.ALT)
+
+                if variantID in variantDB:
+                    variantDB[variantID] += "_"+str(recordDB.INFOS)
+                else:
+                    variantDB[variantID] = str(recordDB.INFOS)
+                    
+
+
+
+
     with open(args.input, 'r') as f:
         log.info("Read VCF")
         vcf_reader = vcf.Reader(f)
