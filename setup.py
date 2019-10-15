@@ -7,9 +7,9 @@ __author__ = 'Mobidic'
 __authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '1.1.2'
+__version__ = '1.2.1a'
 __email__ = 'c-vangoethem@chu-montpellier.fr'
-__status__ = 'prod'
+__status__ = 'dev'
 
 import setuptools
 
@@ -36,11 +36,6 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
     install_requires=['pyvcf==0.6.8'],
-    entry_points={
-        "console_scripts": [
-            "mpa_main=mobidic_mpa:main"
-        ],
-    },
     scripts = ['scripts/mpa'],
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/mobidic/MPA/issues',
