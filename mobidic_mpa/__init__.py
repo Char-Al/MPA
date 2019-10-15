@@ -123,19 +123,24 @@ def cmp(info, values, opt):
         if eval(opt["op"])(float(info), float(elt)):
             return od[elt]
 
-def get_first_value(info, values, opt=None):
-    if info[0] is not None:
+def get_first_value(info, values=None, opt=None):
+    if info[0] is None:
+        return None
+    else:
         if opt is None:
+            if values is None:
+                return info[0]
             return values[info[0]]
         result = eval(opt["fct"])(info[0], values, opt)
         if result is None:
             return opt["default"]
         else:
             return result
-    return None
 
 def get_spliceAI(info, values, opt=None):
-    if( info[0] is not None):
+    if info[0] is None:
+        return None
+    else:
         spliceAI_annot = dict()
         spliceAI_split = info[0].split("\\x3b")
         for annot in spliceAI_split:
@@ -151,16 +156,17 @@ def get_spliceAI(info, values, opt=None):
 
         result = eval(opt["fct"])(maxi, values, opt)
         return result
-    else:
-        return None
+
 
 ########################################
 def get_all_infos(r_info, conf_dict):
     for elt in conf_dict:
         if "vcf" in conf_dict[elt]:
+
             vcf_key = conf_dict[elt]["vcf"]
-            values = conf_dict[elt]["values"]
+            values = conf_dict[elt]["values"] if "values" in conf_dict[elt] else None
             opt = conf_dict[elt]["opt"] if "opt" in conf_dict[elt] else None
+
             result = eval(conf_dict[elt]["fct"])(r_info[vcf_key], values, opt)
             print("{} - {}".format(elt, result))
 
