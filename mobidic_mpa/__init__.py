@@ -7,7 +7,7 @@ __author__ = 'Mobidic'
 __authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux','Thomas Guignard']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '2.0.0a'
+__version__ = '2.0.0b'
 __email__ = 'h-pegeot@chu-montpellier.fr'
 __status__ = 'dev'
 
@@ -406,6 +406,7 @@ def main(args, logger):
 
     # parse variant databse with custm vcf
     global variantDB
+    variantDB = {}
 
     if args.variant_database is not None:
 
@@ -425,9 +426,9 @@ def main(args, logger):
                 variantID = str(recordDB.CHROM) + "_" + str(recordDB.POS) + "_" + str(recordDB.REF)+ "_" + str(recordDB.ALT)
 
                 if variantID in variantDB:
-                    variantDB[variantID] += "_"+str(recordDB.INFOS)
+                    variantDB[variantID] += "_"+str(recordDB.INFO)
                 else:
-                    variantDB[variantID] = str(recordDB.INFOS)
+                    variantDB[variantID] = str(recordDB.INFO)
 
 
 
