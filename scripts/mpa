@@ -7,9 +7,9 @@ __author__ = 'Mobidic'
 __authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '1.1.2'
-__email__ = 'h-pegeot@chu-montpellier.fr'
-__status__ = 'prod'
+__version__ = '1.2.1a'
+__email__ = 'c-vangoethem@chu-montpellier.fr'
+__status__ = 'dev'
 
 ################################################################################
 #
@@ -58,22 +58,29 @@ class LoggerAction(argparse.Action):
 if __name__ == "__main__":
     # Manage parameters
     parser = argparse.ArgumentParser(description="Annotate VCF with Mobidic Prioritization Algorithm score (MPA).")
-    parser.add_argument('-d', '--mpa-directory', default=os.path.dirname(os.path.abspath(__file__)), help='The path to the MPA installation folder. [Default: %(default)s]')
+    parser.add_argument('-d', '--mpa-directory', default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))), help='The path to the MPA installation folder. [Default: %(default)s]')
     parser.add_argument('-l', '--logging-level', default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], action=LoggerAction, help='The logger level. [Default: %(default)s]')
     parser.add_argument('-v', '--version', action='version', version=__version__)
 
     group_input = parser.add_argument_group('Inputs') # Inputs
     group_input.add_argument('-i', '--input', required=True, help="The vcf file to annotate (format: VCF). This vcf must be annotate with annovar.")
+    group_input.add_argument('-c', '--configuration', required=False, default="{}/conf/latest.json".format(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), help="Configuration file according to annotation. (format: JSON) [default : %(default)s]")
 
     group_output = parser.add_argument_group('Outputs')  # Outputs
     group_output.add_argument('-o', '--output', required=True, help="The output vcf file with annotation (format : VCF)")
     args = parser.parse_args()
 
     # Process
-    logging.basicConfig(format='%(asctime)s - %(name)s [%(levelname)s] %(message)s')
+    logging.basicConfig(format='%(asctime)s - [%(levelname)-8s] %(message)s')
     log = logging.getLogger("MPA_score")
     log.setLevel(args.logging_level)
     log.info("Start MPA annotation")
+    log.debug("Version   : {}".format(__version__))
+    log.debug("Status    : {}".format(__status__))
+    log.debug("Directory : {}".format(args.mpa_directory))
+    log.debug("Input     : {}".format(args.input))
+    log.debug("Config    : {}".format(args.configuration))
+    log.debug("Output    : {}".format(args.output))
     log.info("Command: " + " ".join(sys.argv))
     mobidic_mpa.main(args, log)
     log.info("End MPA annotation")
