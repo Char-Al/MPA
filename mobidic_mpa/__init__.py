@@ -7,12 +7,12 @@ __author__ = 'Mobidic'
 __authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '1.1.2'
-__email__ = 'h-pegeot@chu-montpellier.fr'
-__status__ = 'prod'
+__version__ = '1.2.1a'
+__email__ = 'c-vangoethem@chu-montpellier.fr'
+__status__ = 'dev'
 
 ################################################################################
-#Ó
+#
 # IMPORT
 #
 ################################################################################
@@ -24,12 +24,16 @@ import argparse   # for options
 import logging    # logging messages
 import subprocess # launch subprocess
 import collections
+import json
+from operator import lt, le, eq, ne, ge, gt
 
-########################################################################
+################################################################################
 #
 # FUNCTIONS
 #
-########################################################################
+################################################################################
+
+########################################
 def getSoftwarePath(software, expected_folder):
     """
     @summary: Returns the path to the software from the expected_folder if it is present or from the PATH environment variable.
@@ -43,7 +47,9 @@ def getSoftwarePath(software, expected_folder):
         if path is None:
             raise Exception("The software {} cannot be found in environment.".format(software))
     return path
+########################################
 
+########################################
 def wich(software):
     """
     @summary: Returns the path to the software from the PATH environment variable.
@@ -57,52 +63,110 @@ def wich(software):
         if os.path.exists(eval_path):
             soft_path = eval_path
     return soft_path
+########################################
 
-def check_annotation(vcf_infos):
+########################################
+def check_annotation(vcf_infos, conf_dict):
     """
     @summary: Chek if vcf followed the guidelines for annotations (17 are mandatory see full documentation)
     @param vcf_infos: [vcf.reader.infos] One record of the VCF
     @return: [None]
     """
-    vcf_keys = [
-        'Func.refGene',
-    	'ExonicFunc.refGene',
-    	'FATHMM_pred',
-    	'dbscSNV_ADA_SCORE',
-    	'dbscSNV_RF_SCORE',
-        'spliceai_filtered',
-        'SIFT_pred',
-    	'Polyphen2_HDIV_pred',
-    	'Polyphen2_HVAR_pred',
-    	'LRT_pred',
-    	'MutationTaster_pred',
-    	'FATHMM_pred',
-    	'PROVEAN_pred',
-    	'fathmm-MKL_coding_pred',
-    	'MetaSVM_pred',
-    	'MetaLR_pred',
-    	'CLNSIG'
-    ]
+    error = None
 
-    if(not set(vcf_keys).issubset(vcf_infos)):
-        sys.exit('VCF not correctly annotated. See documentation and provide a well annotated vcf (annotation with annovar).')
+    vcf_keys_needed = list()
 
-    return None
+    for k in conf_dict:
+        if "vcf" in conf_dict[k]:
+            vcf_keys_needed.append(conf_dict[k]["vcf"])
 
+    for k in vcf_keys_needed:
+        if k not in vcf_infos:
+            if error is None:
+                error = list()
+            error.append(k)
+    return error
+########################################
+
+########################################
 def check_split_variants(record):
     """
     @summary: Chek if vcf followed the specifications (only one reference) and guidelines pre-processed vcf (split variants)
     @param record: [vcf.model._record] One record of the VCF
     @return: [None]
     """
+    error = None
     if (len(str(record.REF).split(',')) > 1):
-        sys.exit('Multi references on vcf. It seems that your vcf not followed the specifications.')
+        if error is None:
+            error = list()
+        error.append("Multiple references variant into VCF.")
 
     if (len(record.ALT) > 1):
-        sys.exit('Multi allelic variant on vcf. See documentation and provide a well processed vcf (split variants).')
+        if error is None:
+            error = list()
+        error.append("Multi allelic variant into VCF.")
 
+    return error
+########################################
+# Functions to get value into vcf
+def cmp(info, values, opt):
+    reversed = {
+        "lt" : False,
+        "le" : False,
+        "eq" : False,
+        "ne" : False,
+        "ge" : True,
+        "gt" : True
+    }
+    od = collections.OrderedDict(sorted(values.items(), reverse=reversed[opt["op"]]))
+    for elt in od:
+        if eval(opt["op"])(float(info), float(elt)):
+            return od[elt]
+
+def get_first_value(info, values, opt=None):
+    if info[0] is not None:
+        if opt is None:
+            return values[info[0]]
+        result = eval(opt["fct"])(info[0], values, opt)
+        if result is None:
+            return opt["default"]
+        else:
+            return result
     return None
 
+def get_spliceAI(info, values, opt=None):
+    if( info[0] is not None):
+        spliceAI_annot = dict()
+        spliceAI_split = info[0].split("\\x3b")
+        for annot in spliceAI_split:
+            annot_split = annot.split("\\x3d")
+            spliceAI_annot[annot_split[0]] = annot_split[1]
+
+        DS_AG = float(spliceAI_annot["DS_AG"])
+        DS_AL = float(spliceAI_annot["DS_AL"])
+        DS_DG = float(spliceAI_annot["DS_DG"])
+        DS_DL = float(spliceAI_annot["DS_DL"])
+
+        maxi = max(DS_AG, DS_AL, DS_DG, DS_DL)
+
+        result = eval(opt["fct"])(maxi, values, opt)
+        return result
+    else:
+        return None
+
+########################################
+def get_all_infos(r_info, conf_dict):
+    for elt in conf_dict:
+        if "vcf" in conf_dict[elt]:
+            vcf_key = conf_dict[elt]["vcf"]
+            values = conf_dict[elt]["values"]
+            opt = conf_dict[elt]["opt"] if "opt" in conf_dict[elt] else None
+            result = eval(conf_dict[elt]["fct"])(r_info[vcf_key], values, opt)
+            print("{} - {}".format(elt, result))
+
+########################################
+
+########################################
 def calculate_adjusted_score(scores_impact):
     """
     @summary: Calculate the adjusted score impact from 10 annotation score
@@ -132,7 +196,7 @@ def calculate_adjusted_score(scores_impact):
         "available":available,
         "deleterious":deleterious
     })
-	# Return meta score and available tools
+    # Return meta score and available tools
     return {
         "adjusted":score_adjusted,
         "available":available,
@@ -316,135 +380,260 @@ def main(args, logger):
     """
     @summary: Launch annotation with MPA score on a vcf.
     @param args: [Namespace] The namespace extract from the script arguments.
-    param log: [Logger] The logger of the script.
+    @param log: [Logger] The logger of the script.
     """
     global log
     log = logger
 
+    # Get arguments
+    input     = args.input
+    conf_file = args.configuration
+    output    = args.output
+
+    ########################################
+    # Create new info fields to add into the vcf output
     # TODO: improve this ! already existing on pyVCF
-    _Info = collections.namedtuple('Info', ['id', 'num', 'type', 'desc', 'source', 'version'])
-    info_MPA_adjusted = _Info("MPA_adjusted", ".", "String", "MPA_adjusted : normalize MPA missense score from 0 to 10", "MPA", "1.1.0")
-    info_MPA_available = _Info("MPA_available", ".", "String", "MPA_available : number of missense tools annotation available for this variant", "MPA", "1.1.0")
-    info_MPA_deleterious = _Info("MPA_deleterious", ".", "String", "MPA_deleterious : number of missense tools that annotate this variant pathogenic", "MPA", "1.1.0")
-    info_MPA_final_score = _Info("MPA_final_score", ".", "String", "MPA_final_score : unique score that take into account curated database, biological assumptions, splicing predictions and the sum of various predictors for missense alterations. Annotations are made for exonic and splicing variants up to +300nt.", "MPA", "1.1.0")
-    info_MPA_impact = _Info("MPA_impact", ".", "String", "MPA_impact : pathogenic predictions (clinvar_pathogenicity, splice_impact, stop and frameshift_impact)", "MPA", "1.1.0")
-    info_MPA_ranking = _Info("MPA_ranking", ".", "String", "MPA_ranking : prioritize variants with ranks from 1 to 10", "MPA", "1.1.0")
+    _Info = collections.namedtuple(
+        'Info', [
+            'id',
+            'num',
+            'type',
+            'desc',
+            'source',
+            'version'
+        ]
+    )
+    info_MPA_adjusted = _Info(
+        "MPA_adjusted",
+        ".",
+        "String",
+        "MPA_adjusted : normalize MPA missense score from 0 to 10",
+        "MPA",
+        __version__
+    )
+    info_MPA_available = _Info(
+        "MPA_available",
+        ".",
+        "String",
+        "MPA_available : number of missense tools annotation available for this variant",
+        "MPA",
+        __version__
+    )
+    info_MPA_deleterious = _Info(
+        "MPA_deleterious",
+        ".",
+        "String",
+        "MPA_deleterious : number of missense tools that annotate this variant pathogenic",
+        "MPA",
+        __version__
+    )
+    info_MPA_final_score = _Info(
+        "MPA_final_score",
+        ".",
+        "String",
+        "MPA_final_score : unique score that take into account curated database, biological assumptions, splicing predictions and the sum of various predictors for missense alterations. Annotations are made for exonic and splicing variants up to +300nt.",
+        "MPA",
+        __version__
+    )
+    info_MPA_impact = _Info(
+        "MPA_impact",
+        ".",
+        "String",
+        "MPA_impact : pathogenic predictions (clinvar_pathogenicity, splice_impact, stop and frameshift_impact)",
+        "MPA",
+        __version__
+    )
+    info_MPA_ranking = _Info(
+        "MPA_ranking",
+        ".",
+        "String",
+        "MPA_ranking : prioritize variants with ranks from 1 to 10",
+        "MPA",
+        __version__
+    )
+    #
+    ########################################
 
-    with open(args.input, 'r') as f:
-        log.info("Read VCF")
-        vcf_reader = vcf.Reader(f)
-        # TODO: improve this
-        vcf_reader.infos.update({'MPA_adjusted':info_MPA_adjusted})
-        vcf_reader.infos.update({'MPA_available':info_MPA_available})
-        vcf_reader.infos.update({'MPA_deleterious':info_MPA_deleterious})
-        vcf_reader.infos.update({'MPA_final_score':info_MPA_final_score})
-        vcf_reader.infos.update({'MPA_impact':info_MPA_impact})
-        vcf_reader.infos.update({'MPA_ranking':info_MPA_ranking})
-        vcf_writer = vcf.Writer(open(args.output, 'w'), vcf_reader)
-        log.info("Check vcf annotations")
+    ########################################
+    # Get configuration file
+    try:
+        with open(conf_file) as json_data:
+            conf_dict = json.load(json_data)
+    except (IsADirectoryError, FileNotFoundError):
+        log.error(
+            "No such file '{}'. "
+            "Please provide a valid file or report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)".format(conf_file)
+        )
+        sys.exit()
+    except json.decoder.JSONDecodeError:
+        log.error(
+            "File '{}' seems to be not a valid JSON file. "
+            "Please provide a valid file or report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)".format(conf_file)
+        )
+        sys.exit()
+    except:
+        log.error(
+            "Unexptected error : '{}'. "
+            "Please report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)".format(sys.exc_info()[0])
+        )
+        sys.exit()
+    #
+    ########################################
 
-        try:
-            check_annotation(vcf_reader.infos)
-        except SystemExit as e:
-            log.error(str(e))
-            return 1
+    ########################################
+    # Read the vcf
+    try:
+        f = open(input, 'r')
+    except (IOError):
+        log.error(
+            "No such file '{}' (IOError). "
+            "Please provide a valid file or report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)".format(input)
+        )
+        sys.exit()
+    except:
+        log.error(
+            "Unexptected error : '{}'. "
+            "Please report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)".format(sys.exc_info()[0])
+        )
+        sys.exit()
+    else:
+        with f:
+            log.info("Read VCF")
+            vcf_reader = vcf.Reader(f)
 
-        log.info("Read the each variants")
-        for record in vcf_reader:
-            try:
-                check_split_variants(record)
-            except SystemExit as e:
-                log.error(str(record))
-                log.error(str(e))
-                continue
-            log.debug(str(record))
+            # Check the annotation into the fields info in the header of the VCF
+            log.info("Check vcf annotations")
+            error = check_annotation(vcf_reader.infos, conf_dict)
+            if error is not None:
+                for e in error:
+                    log.error(
+                        "Expected annotation with info field : '{}'. "
+                        "Please refer to the documentation to use Annovar "
+                        "or report an issue on github "
+                        "(https://github.com/mobidic/MPA/issues)".format(e)
+                    )
+                sys.exit()
 
-            # Deleterious impact scores
-            impacts_scores = {
-                "SIFT" : record.INFO['SIFT_pred'][0],
-                "HDIV" : record.INFO['Polyphen2_HDIV_pred'][0],
-                "HVAR" : record.INFO['Polyphen2_HVAR_pred'][0],
-                "LRT" : record.INFO['LRT_pred'][0],
-                "MutationTaster" : record.INFO['MutationTaster_pred'][0],
-                "FATHMM" : record.INFO['FATHMM_pred'][0],
-                "PROVEAN" : record.INFO['PROVEAN_pred'][0],
-                "MKL" : record.INFO['fathmm-MKL_coding_pred'][0],
-                "SVM" : record.INFO['MetaSVM_pred'][0],
-                "LR" : record.INFO['MetaLR_pred'][0]
-            }
+            # TODO: improve this
+            vcf_reader.infos.update({'MPA_adjusted':info_MPA_adjusted})
+            vcf_reader.infos.update({'MPA_available':info_MPA_available})
+            vcf_reader.infos.update({'MPA_deleterious':info_MPA_deleterious})
+            vcf_reader.infos.update({'MPA_final_score':info_MPA_final_score})
+            vcf_reader.infos.update({'MPA_impact':info_MPA_impact})
+            vcf_reader.infos.update({'MPA_ranking':info_MPA_ranking})
 
-            # Splicing impact scores
-            splices_scores = {
-                "ADA": record.INFO['dbscSNV_ADA_SCORE'][0],
-                "RF": record.INFO['dbscSNV_RF_SCORE'][0],
-                "spliceAI":record.INFO['spliceai_filtered'][0],
-            }
+            # Initialise output VCF
+            vcf_writer = vcf.Writer(open(output, 'w'), vcf_reader)
 
-            # MPA aggregate the information to predict some effects
-            meta_impact = {
-                "clinvar_pathogenicity": False,
-                "stop_impact": False,
-                "splice_impact": False,
-                "frameshift_impact": False,
-                "unknown_impact": False
-            }
+            log.info("Read the each variants")
+            for record in vcf_reader:
+                # Confirm variants are well splitted
+                error = check_split_variants(record)
+                if error is not None:
+                    for e in error:
+                        log.error(
+                            "Variant '{}' seems not splited : '{}'. "
+                            "Please refer to the documentation to split your VCF "
+                            "or report an issue on github "
+                            "(https://github.com/mobidic/MPA/issues)".format(e)
+                        )
+                    sys.exit()
 
-            # Calculate adjusted score for each variants
-            adjusted_score = calculate_adjusted_score(impacts_scores)
+                # Get all scores
+                scores = get_all_infos(record.INFO, conf_dict)
+                sys.exit()
 
-            # Determine if variant is well annotated with clinvar as deleterious
-            meta_impact["clinvar_pathogenicity"] = is_clinvar_pathogenic(record.INFO['CLNSIG'][0])
+                # Deleterious impact scores
+                impacts_scores = {
+                    "SIFT" : record.INFO['SIFT_pred'][0],
+                    "HDIV" : record.INFO['Polyphen2_HDIV_pred'][0],
+                    "HVAR" : record.INFO['Polyphen2_HVAR_pred'][0],
+                    "LRT" : record.INFO['LRT_pred'][0],
+                    "MutationTaster" : record.INFO['MutationTaster_pred'][0],
+                    "FATHMM" : record.INFO['FATHMM_pred'][0],
+                    "PROVEAN" : record.INFO['PROVEAN_pred'][0],
+                    "MKL" : record.INFO['fathmm-MKL_coding_pred'][0],
+                    "SVM" : record.INFO['MetaSVM_pred'][0],
+                    "LR" : record.INFO['MetaLR_pred'][0]
+                }
 
-            # Determine the impact on splicing
-            meta_impact["splice_impact"] = is_splice_impact(splices_scores, record.is_indel, record.INFO['Func.refGene'][0])
+                # Splicing impact scores
+                splices_scores = {
+                    "ADA": record.INFO['dbscSNV_ADA_SCORE'][0],
+                    "RF": record.INFO['dbscSNV_RF_SCORE'][0],
+                    "spliceAI":record.INFO['spliceai_filtered'][0],
+                }
 
-            # Determine the exonic impact
-            match_exonic = re.search("exonic", record.INFO['Func.refGene'][0], re.IGNORECASE)
-            if(match_exonic and record.INFO['ExonicFunc.refGene'][0] != None):
-                # Determine the stop impact
-                meta_impact["stop_impact"] = is_stop_impact(record.INFO['ExonicFunc.refGene'][0])
+                # MPA aggregate the information to predict some effects
+                meta_impact = {
+                    "clinvar_pathogenicity": False,
+                    "stop_impact": False,
+                    "splice_impact": False,
+                    "frameshift_impact": False,
+                    "unknown_impact": False
+                }
 
-                # Determine the frameshift impact
-                meta_impact["frameshift_impact"] = is_frameshift_impact(record.INFO['ExonicFunc.refGene'][0])
+                # Calculate adjusted score for each variants
+                adjusted_score = calculate_adjusted_score(impacts_scores)
 
-                # Determine the missense impact
-                meta_impact["missense_impact"] = is_missense_impact(record.INFO['ExonicFunc.refGene'][0], adjusted_score["adjusted"])
+                # Determine if variant is well annotated with clinvar as deleterious
+                meta_impact["clinvar_pathogenicity"] = is_clinvar_pathogenic(record.INFO['CLNSIG'][0])
 
-                # Determine if unknown impact (misunderstand gene)
-                # NOTE: /!\ Be careful to updates regularly your databases /!\
-                meta_impact["unknown_impact"] = is_unknown_impact(record.INFO['ExonicFunc.refGene'][0])
-            log.debug("Meta score : " + str(meta_impact))
+                # Determine the impact on splicing
+                meta_impact["splice_impact"] = is_splice_impact(splices_scores, record.is_indel, record.INFO['Func.refGene'][0])
 
-            # Ranking of variants
-            rank = False
-            record.INFO['MPA_impact'] = ""
-            for impact in meta_impact:
-                if (meta_impact[impact]):
-                    record.INFO['MPA_impact'] = record.INFO['MPA_impact'] + impact + ","
-                    if(meta_impact[impact]<rank or not rank):
-                        rank = meta_impact[impact]
-                        if(impact == "unknown_impact" or impact == "missense_impact"):
-                            adjusted_score["final_score"] = adjusted_score["adjusted"]
-                        elif(impact == "splice_impact" and meta_impact["splice_impact"] == 6):
-                            adjusted_score["final_score"] = 6
-                        elif(impact == "splice_impact" and meta_impact["splice_impact"] == 8):
-                            adjusted_score["final_score"] = 2
-                        else:
-                            adjusted_score["final_score"] = 10
+                # Determine the exonic impact
+                match_exonic = re.search("exonic", record.INFO['Func.refGene'][0], re.IGNORECASE)
+                if(match_exonic and record.INFO['ExonicFunc.refGene'][0] != None):
+                    # Determine the stop impact
+                    meta_impact["stop_impact"] = is_stop_impact(record.INFO['ExonicFunc.refGene'][0])
 
-            # if not ranking default value 10
-            if not rank:
-                rank = 10
-                record.INFO['MPA_impact'] = "NULL,"
-                adjusted_score["final_score"] = adjusted_score["adjusted"]
+                    # Determine the frameshift impact
+                    meta_impact["frameshift_impact"] = is_frameshift_impact(record.INFO['ExonicFunc.refGene'][0])
 
-            log.debug("Ranking : " + str(rank))
+                    # Determine the missense impact
+                    meta_impact["missense_impact"] = is_missense_impact(record.INFO['ExonicFunc.refGene'][0], adjusted_score["adjusted"])
 
-            # write vcf output
-            record.INFO['MPA_impact'] = record.INFO['MPA_impact'][:-1]
-            record.INFO['MPA_ranking'] = rank
-            for sc in adjusted_score:
-                record.INFO['MPA_' + sc] = adjusted_score[sc]
+                    # Determine if unknown impact (misunderstand gene)
+                    # NOTE: /!\ Be careful to updates regularly your databases /!\
+                    meta_impact["unknown_impact"] = is_unknown_impact(record.INFO['ExonicFunc.refGene'][0])
+                log.debug("Meta score : " + str(meta_impact))
 
-            vcf_writer.write_record(record)
-        vcf_writer.close()
+                # Ranking of variants
+                rank = False
+                record.INFO['MPA_impact'] = ""
+                for impact in meta_impact:
+                    if (meta_impact[impact]):
+                        record.INFO['MPA_impact'] = record.INFO['MPA_impact'] + impact + ","
+                        if(meta_impact[impact]<rank or not rank):
+                            rank = meta_impact[impact]
+                            if(impact == "unknown_impact" or impact == "missense_impact"):
+                                adjusted_score["final_score"] = adjusted_score["adjusted"]
+                            elif(impact == "splice_impact" and meta_impact["splice_impact"] == 6):
+                                adjusted_score["final_score"] = 6
+                            elif(impact == "splice_impact" and meta_impact["splice_impact"] == 8):
+                                adjusted_score["final_score"] = 2
+                            else:
+                                adjusted_score["final_score"] = 10
+
+                # if not ranking default value 10
+                if not rank:
+                    rank = 10
+                    record.INFO['MPA_impact'] = "NULL,"
+                    adjusted_score["final_score"] = adjusted_score["adjusted"]
+
+                log.debug("Ranking : " + str(rank))
+
+                # write vcf output
+                record.INFO['MPA_impact'] = record.INFO['MPA_impact'][:-1]
+                record.INFO['MPA_ranking'] = rank
+                for sc in adjusted_score:
+                    record.INFO['MPA_' + sc] = adjusted_score[sc]
+
+                vcf_writer.write_record(record)
+            vcf_writer.close()
