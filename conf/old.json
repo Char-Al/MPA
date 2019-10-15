@@ -7,8 +7,7 @@
 			"spliceai" : "v1.2.1",
 			"available_fct" : [
 				"get_first_value",
-				"get_spliceAI",
-				"get_clinvar"
+				"get_spliceAI"
 			]
 	},
 	"SIFT" : {
@@ -164,7 +163,7 @@
 			"risk_factor" : "None",
 			"Uncertain_significance" : 3
 		},
-		"fct" : "get_clinvar"
+		"fct" : "get_first_value"
 	},
 	"RefSeqGene" : {
 		"vcf" : "Func.refGene",
