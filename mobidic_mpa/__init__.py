@@ -4,12 +4,12 @@
 #
 
 __author__ = 'Mobidic'
-__authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux']
+__authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux','Thomas Guignard']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '1.1.2'
+__version__ = '2.0.0a'
 __email__ = 'h-pegeot@chu-montpellier.fr'
-__status__ = 'prod'
+__status__ = 'dev'
 
 ################################################################################
 #Ó
@@ -321,7 +321,7 @@ def main(args, logger):
     global log
     log = logger
 
-    # dictionnary with default weights or input file with weight related to parameters	
+    # dictionnary with default weights or input file with weight related to parameters
     global weightedScores
     weightedScores = {
     	"clinvar": {
@@ -390,7 +390,7 @@ def main(args, logger):
 	}
 
     }
-    			
+
 
 
     # TODO: improve this ! already existing on pyVCF
@@ -408,11 +408,11 @@ def main(args, logger):
     global variantDB
 
     if args.variant_database is not None:
-        
+
         with open(args.variant_database, 'r') as v:
             log.info("Read Variant database")
             vcfdb_reader = vcf.Reader(v)
-            
+
             for recordDB in vcfdb_reader:
                 try:
                     check_split_variants(recordDB)
@@ -421,14 +421,14 @@ def main(args, logger):
                     log.error(str(e))
                     continue
                 log.debug(str(recordDB))
-                
+
                 variantID = str(recordDB.CHROM) + "_" + str(recordDB.POS) + "_" + str(recordDB.REF)+ "_" + str(recordDB.ALT)
 
                 if variantID in variantDB:
                     variantDB[variantID] += "_"+str(recordDB.INFOS)
                 else:
                     variantDB[variantID] = str(recordDB.INFOS)
-                    
+
 
 
 

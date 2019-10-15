@@ -4,12 +4,12 @@
 #
 
 __author__ = 'Mobidic'
-__authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux']
+__authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux','Thomas Guignard']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '1.1.2'
+__version__ = '2.0.0a'
 __email__ = 'c-vangoethem@chu-montpellier.fr'
-__status__ = 'prod'
+__status__ = 'dev'
 
 import setuptools
 
