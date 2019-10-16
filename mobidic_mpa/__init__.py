@@ -109,7 +109,7 @@ def check_split_variants(record):
     return error
 ########################################
 # Functions to get value into vcf
-def cmp(info, values, opt):
+def cmp(info, values, opt, record=None):
     reversed = {
         "lt" : False,
         "le" : False,
@@ -123,7 +123,10 @@ def cmp(info, values, opt):
         if eval(opt["op"])(float(info), float(elt)):
             return od[elt]
 
-def get_first_value(info, values=None, opt=None):
+def is_indel_splice_site(info, values, opt, record=None):
+    return ("High" if (values[info] and record.is_indel) else None)
+
+def get_first_value(info, values=None, opt=None, record=None):
     if info[0] is None:
         return None
     else:
@@ -131,13 +134,13 @@ def get_first_value(info, values=None, opt=None):
             if values is None:
                 return info[0]
             return values[info[0]]
-        result = eval(opt["fct"])(info[0], values, opt)
+        result = eval(opt["fct"])(info[0], values, opt, record)
         if result is None:
             return opt["default"]
         else:
             return result
 
-def get_spliceAI(info, values, opt=None):
+def get_spliceAI(info, values=None, opt=None, record=None):
     if info[0] is None:
         return None
     else:
@@ -159,16 +162,27 @@ def get_spliceAI(info, values, opt=None):
 
 
 ########################################
-def get_all_infos(r_info, conf_dict):
-    for elt in conf_dict:
-        if "vcf" in conf_dict[elt]:
+def get_all_infos(record, annot_dict):
+    r_info = record.INFO
+    score_utils = dict()
+    for elt in annot_dict:
+        # get intersting values
+        vcf_key = annot_dict[elt]["vcf"]
+        type    = annot_dict[elt]["type"]
 
-            vcf_key = conf_dict[elt]["vcf"]
-            values = conf_dict[elt]["values"] if "values" in conf_dict[elt] else None
-            opt = conf_dict[elt]["opt"] if "opt" in conf_dict[elt] else None
+        if type not in score_utils:
+            score_utils[type] = list()
 
-            result = eval(conf_dict[elt]["fct"])(r_info[vcf_key], values, opt)
-            print("{} - {}".format(elt, result))
+        values = annot_dict[elt]["values"] if "values" in annot_dict[elt] else None
+        opt    = annot_dict[elt]["opt"] if "opt" in annot_dict[elt] else None
+
+        result = eval(annot_dict[elt]["fct"])(r_info[vcf_key], values, opt, record)
+
+        score_utils[type].append(result)
+
+    log.debug("Values for variant {} : {}".format(record, score_utils))
+
+
 
 ########################################
 
@@ -551,7 +565,7 @@ def main(args, logger):
                     sys.exit()
 
                 # Get all scores
-                scores = get_all_infos(record.INFO, conf_dict)
+                scores = get_all_infos(record, conf_dict["annotations"])
                 sys.exit()
 
                 # Deleterious impact scores
