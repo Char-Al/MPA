@@ -113,7 +113,7 @@ def check_split_variants(record):
 def cmp(info, values, opt, record=None):
     """
     @summary: Comparator function used in config file
-    @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
+    @param infos: [vcf.reader.infos] All fields info from the VCF header
     @param values: [dict] Dict of values used to return a result
     @param opt: [opt] Dict of options used for this function
     @param record: [vcf.model._record] Current record of the VCF (or None)
@@ -166,7 +166,7 @@ def cmp(info, values, opt, record=None):
 def is_ISSS(info, values, opt, record):
     """
     @summary: Define if indels surrounding a connonic splice site (2pb by default by annovar)
-    @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
+    @param infos: [vcf.reader.infos] All fields info from the VCF header
     @param values: [dict] Dict of values used to return a result
     @param opt: [opt] Dict of options used for this function
     @param record: [vcf.model._record] Current record of the VCF (or None)
@@ -190,7 +190,7 @@ def is_ISSS(info, values, opt, record):
 def get_first_value(info, values=None, opt=None, record=None):
     """
     @summary: Get the first value from an info field into a vcf or applied a fct to convert this value
-    @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
+    @param infos: [vcf.reader.infos] All fields info from the VCF header
     @param values: [dict] Dict of values used to return a result
     @param opt: [opt] Dict of options used for this function
     @param record: [vcf.model._record] Current record of the VCF (or None)
@@ -212,6 +212,14 @@ def get_first_value(info, values=None, opt=None, record=None):
 
 ########################################
 def get_spliceAI(info, values=None, opt=None, record=None):
+    """
+    @summary: Get the status of spliceAI score
+    @param info: [vcf.reader.infos] All fields info from the VCF header
+    @param values: [dict] Dict of values used to return a result
+    @param opt: [opt] Dict of options used for this function
+    @param record: [vcf.model._record] Current record of the VCF (or None)
+    @return: [None|str] return None or status according to the config file
+    """
     if info[0] is None:
         return None
     else:
@@ -219,12 +227,31 @@ def get_spliceAI(info, values=None, opt=None, record=None):
         spliceAI_split = info[0].split("\\x3b")
         for annot in spliceAI_split:
             annot_split = annot.split("\\x3d")
-            spliceAI_annot[annot_split[0]] = annot_split[1]
+            try:
+                spliceAI_annot[annot_split[0]] = annot_split[1]
+            except IndexError:
+                spliceAI_annot[annot_split[0]] = None
 
-        DS_AG = float(spliceAI_annot["DS_AG"])
-        DS_AL = float(spliceAI_annot["DS_AL"])
-        DS_DG = float(spliceAI_annot["DS_DG"])
-        DS_DL = float(spliceAI_annot["DS_DL"])
+        try:
+            DS_AG = float(spliceAI_annot["DS_AG"])
+            DS_AL = float(spliceAI_annot["DS_AL"])
+            DS_DG = float(spliceAI_annot["DS_DG"])
+            DS_DL = float(spliceAI_annot["DS_DL"])
+        except KeyError:
+            log.error(
+                "Key used by spliceAI not recognize in annotation. "
+                "Key allowed for the resaerch of splicing 'DS_AG', 'DS_AL', 'DS_DG', 'DS_DL'. "
+                "Please control your VCF and report an issue on github "
+                "(https://github.com/mobidic/MPA/issues)"
+            )
+            sys.exit()
+        except ValueError:
+            log.error(
+                "Value of spliceAI score are not type float. "
+                "Please control your VCF and spliceAI annotation or report an issue on github "
+                "(https://github.com/mobidic/MPA/issues)"
+            )
+            sys.exit()
 
         maxi = max(DS_AG, DS_AL, DS_DG, DS_DL)
 
