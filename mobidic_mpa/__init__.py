@@ -117,7 +117,7 @@ def cmp(info, values, opt, record=None):
     @param values: [dict] Dict of values used to return a result
     @param opt: [opt] Dict of options used for this function
     @param record: [vcf.model._record] Current record of the VCF (or None)
-    @return: [None] return None or specific error
+    @return: [None] return None or value defined by config file
     """
 
     reversed = {
@@ -133,7 +133,7 @@ def cmp(info, values, opt, record=None):
         od = collections.OrderedDict(sorted(values.items(), reverse=reversed[opt["op"]]))
     except KeyError:
         log.error(
-            "Operator 'op' not recognize or missing for function 'cmp'. "
+            "Operator 'op' not recognize or missing in function 'cmp'. "
             "Authorized operator : 'lt', 'le', 'eq', 'ne', 'ge', 'gt'. "
             "Please correct your config file or report an issue on github "
             "(https://github.com/mobidic/MPA/issues)"
@@ -161,8 +161,27 @@ def cmp(info, values, opt, record=None):
     return None
 
 # Is Indel Surroundig Splice Site
-def is_ISSS(info, values, opt, record=None):
-    return ("High" if (values[info] and record.is_indel) else None)
+def is_ISSS(info, values, opt, record):
+    """
+    @summary: Define if indels surrounding a connonic splice site (2pb by default by annovar)
+    @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
+    @param values: [dict] Dict of values used to return a result
+    @param opt: [opt] Dict of options used for this function
+    @param record: [vcf.model._record] Current record of the VCF (or None)
+    @return: [None|str] return None or "High"
+    """
+
+    try:
+        result = ("High" if (values[info] and record.is_indel) else None)
+    except KeyError:
+        log.error(
+            "Field not recognize or missing in vcf in function 'is_ISS'. "
+            "Please control your config file and your VCF or report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)"
+        )
+        sys.exit()
+
+    return result
 
 def get_first_value(info, values=None, opt=None, record=None):
     if info[0] is None:
