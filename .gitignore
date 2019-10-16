@@ -12,6 +12,8 @@ keke
 *tbi
 *.docx
 panel_description.txt
+*akefile
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
