@@ -116,7 +116,7 @@ def cmp(info, values, opt, record=None):
     @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
     @param values: [dict] Dict of values used to return a result
     @param opt: [opt] Dict of options used for this function
-    @param record: [vcf.model._record] Current record of the VCF
+    @param record: [vcf.model._record] Current record of the VCF (or None)
     @return: [None] return None or specific error
     """
 
@@ -129,12 +129,35 @@ def cmp(info, values, opt, record=None):
         "gt" : True
     }
 
-    od = collections.OrderedDict(sorted(values.items(), reverse=reversed[opt["op"]]))
+    try:
+        od = collections.OrderedDict(sorted(values.items(), reverse=reversed[opt["op"]]))
+    except KeyError:
+        log.error(
+            "Operator 'op' not recognize or missing for function 'cmp'. "
+            "Authorized operator : 'lt', 'le', 'eq', 'ne', 'ge', 'gt'. "
+            "Please correct your config file or report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)"
+        )
+        sys.exit()
+    except AttributeError:
+        log.error(
+            "Function 'cmp' needs to be associated with 'values'. "
+            "Please correct your config file or report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)"
+        )
+        sys.exit()
+    except:
+        log.error(
+            "Unknown error with 'cmp' function'. "
+            "Please control your config file then report an issue on github "
+            "(https://github.com/mobidic/MPA/issues)"
+        )
+        sys.exit()
 
     for elt in od:
         if eval(opt["op"])(float(info), float(elt)):
             return od[elt]
-            
+
     return None
 
 # Is Indel Surroundig Splice Site
@@ -178,6 +201,7 @@ def get_spliceAI(info, values=None, opt=None, record=None):
 def get_all_infos(record, annot_dict):
     r_info = record.INFO
     score_utils = dict()
+
     for elt in annot_dict:
         # get intersting values
         vcf_key = annot_dict[elt]["vcf"]
