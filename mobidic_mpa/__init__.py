@@ -159,7 +159,9 @@ def cmp(info, values, opt, record=None):
             return od[elt]
 
     return None
+########################################
 
+########################################
 # Is Indel Surroundig Splice Site
 def is_ISSS(info, values, opt, record):
     """
@@ -182,8 +184,18 @@ def is_ISSS(info, values, opt, record):
         sys.exit()
 
     return result
+########################################
 
+########################################
 def get_first_value(info, values=None, opt=None, record=None):
+    """
+    @summary: Get the first value from an info field into a vcf or applied a fct to convert this value
+    @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
+    @param values: [dict] Dict of values used to return a result
+    @param opt: [opt] Dict of options used for this function
+    @param record: [vcf.model._record] Current record of the VCF (or None)
+    @return: [None|str] return None or raw value or converted value from this field
+    """
     if info[0] is None:
         return None
     else:
@@ -196,7 +208,9 @@ def get_first_value(info, values=None, opt=None, record=None):
             return opt["default"]
         else:
             return result
+########################################
 
+########################################
 def get_spliceAI(info, values=None, opt=None, record=None):
     if info[0] is None:
         return None
