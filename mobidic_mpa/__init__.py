@@ -7,7 +7,7 @@ __author__ = 'Mobidic'
 __authors__ = ['Henri Pegeot','Kevin Yauy','Charles Van Goethem','David Baux','Thomas Guignard']
 __copyright__ = 'Copyright (C) 2019'
 __license__ = 'Academic License Agreement'
-__version__ = '2.0.0b'
+__version__ = '2.0.0a'
 __email__ = 'h-pegeot@chu-montpellier.fr'
 __status__ = 'dev'
 
@@ -318,6 +318,9 @@ def main(args, logger):
     @param args: [Namespace] The namespace extract from the script arguments.
     param log: [Logger] The logger of the script.
     """
+    #DEBUG
+    #sys.exit()
+    
     global log
     log = logger
 
@@ -404,6 +407,13 @@ def main(args, logger):
 
 
 
+    # new infos for v2 pequod
+    info_MPA_variantDB = _Info("MPA_variantDB", ".", "String", "MPA_variantDB : vcf info field from a custom variant vcf, used as database occurrence","MPA","2.0.0")
+
+
+
+
+
     # parse variant databse with custm vcf
     global variantDB
     variantDB = {}
@@ -432,8 +442,6 @@ def main(args, logger):
 
 
 
-
-
     with open(args.input, 'r') as f:
         log.info("Read VCF")
         vcf_reader = vcf.Reader(f)
@@ -444,6 +452,12 @@ def main(args, logger):
         vcf_reader.infos.update({'MPA_final_score':info_MPA_final_score})
         vcf_reader.infos.update({'MPA_impact':info_MPA_impact})
         vcf_reader.infos.update({'MPA_ranking':info_MPA_ranking})
+        
+        # new infos for v2 pequod
+        vcf_reader.infos.update({'MPA_variantDB':info_MPA_variantDB})
+
+
+
         vcf_writer = vcf.Writer(open(args.output, 'w'), vcf_reader)
         log.info("Check vcf annotations")
 
