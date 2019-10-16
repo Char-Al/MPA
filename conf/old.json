@@ -192,7 +192,7 @@
 				"UTR5\\x3bUTR3" : 0
 			},
 			"fct" : "get_first_value",
-			"opt" : { "fct" : "is_indel_splice_site", "default" : "None" }
+			"opt" : { "fct" : "is_ISSS", "default" : "None", "help": "Is Indel Surroundig Splice Site" }
 		},
 		"RefSeqExonic" : {
 			"vcf" : "ExonicFunc.refGene",

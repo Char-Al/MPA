@@ -122,8 +122,9 @@ def cmp(info, values, opt, record=None):
     for elt in od:
         if eval(opt["op"])(float(info), float(elt)):
             return od[elt]
-
-def is_indel_splice_site(info, values, opt, record=None):
+            
+# Is Indel Surroundig Splice Site
+def is_ISSS(info, values, opt, record=None):
     return ("High" if (values[info] and record.is_indel) else None)
 
 def get_first_value(info, values=None, opt=None, record=None):
