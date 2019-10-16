@@ -66,25 +66,23 @@ def wich(software):
 ########################################
 
 ########################################
-def check_annotation(vcf_infos, conf_dict):
+def check_annotation(vcf_infos, annot_dict):
     """
-    @summary: Chek if vcf followed the guidelines for annotations (17 are mandatory see full documentation)
-    @param vcf_infos: [vcf.reader.infos] One record of the VCF
-    @return: [None]
+    @summary: Chek if vcf have all annotations required from config file
+    @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
+    @param annot_dict: [annot_dict] Dict of fields search from config file
+    @return: [error] return None or list of fields missing
     """
     error = None
 
-    vcf_keys_needed = list()
-
-    for k in conf_dict:
-        if "vcf" in conf_dict[k]:
-            vcf_keys_needed.append(conf_dict[k]["vcf"])
+    vcf_keys_needed = [annot_dict[k]["vcf"] for k in annot_dict]
 
     for k in vcf_keys_needed:
         if k not in vcf_infos:
             if error is None:
                 error = list()
             error.append(k)
+
     return error
 ########################################
 
@@ -108,6 +106,8 @@ def check_split_variants(record):
 
     return error
 ########################################
+
+########################################
 # Functions to get value into vcf
 def cmp(info, values, opt, record=None):
     reversed = {
@@ -122,7 +122,7 @@ def cmp(info, values, opt, record=None):
     for elt in od:
         if eval(opt["op"])(float(info), float(elt)):
             return od[elt]
-            
+
 # Is Indel Surroundig Splice Site
 def is_ISSS(info, values, opt, record=None):
     return ("High" if (values[info] and record.is_indel) else None)
@@ -161,8 +161,6 @@ def get_spliceAI(info, values=None, opt=None, record=None):
         result = eval(opt["fct"])(maxi, values, opt)
         return result
 
-
-########################################
 def get_all_infos(record, annot_dict):
     r_info = record.INFO
     score_utils = dict()
@@ -529,7 +527,7 @@ def main(args, logger):
 
             # Check the annotation into the fields info in the header of the VCF
             log.info("Check vcf annotations")
-            error = check_annotation(vcf_reader.infos, conf_dict)
+            error = check_annotation(vcf_reader.infos, conf_dict["annotations"])
             if error is not None:
                 for e in error:
                     log.error(
