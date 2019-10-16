@@ -80,19 +80,16 @@
 		"REVEL" : {
 			"type" : "missense",
 			"vcf" : "REVEL_score",
-			"values" : "raw",
 			"function" : "get_first_value"
 		},
 		"MutPred" : {
 			"type" : "missense",
 			"vcf" : "MutPred_score",
-			"values" : "raw",
 			"function" : "get_first_value"
 		},
 		"MVP" : {
 			"type" : "missense",
 			"vcf" : "MVP_score",
-			"values" : "raw",
 			"function" : "get_first_value"
 		},
 		"ADA" : {
