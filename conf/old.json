@@ -1,5 +1,5 @@
 {
-	"compatible" : {
+	"version" : {
 			"dbnsfp" : "v3.5a",
 			"dbscsnv" : "v1.1",
 			"genome" : "hg19",
@@ -10,169 +10,207 @@
 				"get_spliceAI"
 			]
 	},
-	"SIFT" : {
-		"type" : "missense",
-		"vcf" : "SIFT_pred",
-		"values" : {
-			"D" : 1,
-			"T" : 0
+	"annotations" : {
+		"SIFT" : {
+			"type" : "missense",
+			"vcf" : "SIFT_pred",
+			"values" : {
+				"D" : 1,
+				"T" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"PROVEAN" : {
-		"type" : "missense",
-		"vcf" : "PROVEAN_pred",
-		"values" : {
-			"D" : 1,
-			"N" : 0
+		"PROVEAN" : {
+			"type" : "missense",
+			"vcf" : "PROVEAN_pred",
+			"values" : {
+				"D" : 1,
+				"N" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"HVAR" : {
-		"type" : "missense",
-		"vcf" : "Polyphen2_HVAR_pred",
-		"values" : {
-			"D" : 1,
-			"P" : 0.5,
-			"B" : 0
+		"HVAR" : {
+			"type" : "missense",
+			"vcf" : "Polyphen2_HVAR_pred",
+			"values" : {
+				"D" : 1,
+				"P" : 0.5,
+				"B" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"HDIV" : {
-		"type" : "missense",
-		"vcf" : "Polyphen2_HDIV_pred",
-		"values" : {
-			"D" : 1,
-			"P" : 0.5,
-			"B" : 0
+		"HDIV" : {
+			"type" : "missense",
+			"vcf" : "Polyphen2_HDIV_pred",
+			"values" : {
+				"D" : 1,
+				"P" : 0.5,
+				"B" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"LRT" : {
-		"type" : "missense",
-		"vcf" : "LRT_pred",
-		"values" : {
-			"D" : 1,
-			"N" : 0,
-			"U" : "None"
+		"LRT" : {
+			"type" : "missense",
+			"vcf" : "LRT_pred",
+			"values" : {
+				"D" : 1,
+				"N" : 0,
+				"U" : "None"
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"FATHMM" : {
-		"type" : "missense",
-		"vcf" : "FATHMM_pred",
-		"values" : {
-			"D" : 1,
-			"T" : 0
+		"FATHMM" : {
+			"type" : "missense",
+			"vcf" : "FATHMM_pred",
+			"values" : {
+				"D" : 1,
+				"T" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"MetaSVM" : {
-		"type" : "missense",
-		"vcf" : "MetaSVM_pred",
-		"values" : {
-			"D" : 1,
-			"T" : 0
+		"MetaSVM" : {
+			"type" : "missense",
+			"vcf" : "MetaSVM_pred",
+			"values" : {
+				"D" : 1,
+				"T" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"MKL" : {
-		"type" : "missense",
-		"vcf" : "fathmm-MKL_coding_pred",
-		"values" : {
-			"D" : 1,
-			"N" : 0
+		"MKL" : {
+			"type" : "missense",
+			"vcf" : "fathmm-MKL_coding_pred",
+			"values" : {
+				"D" : 1,
+				"N" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"MetaSVM" : {
-		"type" : "missense",
-		"vcf" : "MetaSVM_pred",
-		"values" : {
-			"D" : 1,
-			"T" : 0
+		"MetaSVM" : {
+			"type" : "missense",
+			"vcf" : "MetaSVM_pred",
+			"values" : {
+				"D" : 1,
+				"T" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"MetaLR_pred" : {
-		"type" : "missense",
-		"vcf" : "MetaLR_pred",
-		"values" : {
-			"D" : 1,
-			"T" : 0
+		"MetaLR_pred" : {
+			"type" : "missense",
+			"vcf" : "MetaLR_pred",
+			"values" : {
+				"D" : 1,
+				"T" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"MutationTaster" : {
-		"type" : "missense",
-		"vcf" : "MutationTaster_pred",
-		"values" : {
-			"A" : 1,
-			"D" : 0.6,
-			"N" : 0.2,
-			"P" : 0
+		"MutationTaster" : {
+			"type" : "missense",
+			"vcf" : "MutationTaster_pred",
+			"values" : {
+				"A" : 1,
+				"D" : 0.6,
+				"N" : 0.2,
+				"P" : 0
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"ADA" : {
-		"vcf" : "dbscSNV_ADA_SCORE",
-		"type" : "splice",
-		"values" : {
-			"0.6" : "High"
+		"ADA" : {
+			"vcf" : "dbscSNV_ADA_SCORE",
+			"type" : "splice",
+			"values" : {
+				"0.6" : "High"
+			},
+			"fct" : "get_first_value",
+			"opt" : { "fct" : "cmp", "op" : "ge", "default" : "low" }
 		},
-		"fct" : "get_first_value",
-		"opt" : { "fct" : "cmp", "op" : "ge", "default" : "low" }
-	},
-	"RF" : {
-		"vcf" : "dbscSNV_RF_SCORE",
-		"type" : "splice",
-		"values" : {
-			"0.6" : "High"
+		"RF" : {
+			"vcf" : "dbscSNV_RF_SCORE",
+			"type" : "splice",
+			"values" : {
+				"0.6" : "High"
+			},
+			"fct" : "get_first_value",
+			"opt" : { "fct" : "cmp", "op" : "ge", "default" : "None" }
 		},
-		"fct" : "get_first_value",
-		"opt" : { "fct" : "cmp", "op" : "ge", "default" : "None" }
-	},
-	"spliceAI" : {
-		"vcf" : "spliceai_filtered",
-		"type" : "splice",
-		"values" : {
-			"0.8" : "High",
-			"0.5" : "Moderate",
-			"0.2" : "Low"
+		"spliceAI" : {
+			"vcf" : "spliceai_filtered",
+			"type" : "splice",
+			"values" : {
+				"0.8" : "High",
+				"0.5" : "Moderate",
+				"0.2" : "Low"
+			},
+			"fct" : "get_spliceAI",
+			"opt" : { "fct" : "cmp", "op" : "ge", "default" : "None" }
 		},
-		"fct" : "get_spliceAI",
-		"opt" : { "fct" : "cmp", "op" : "ge", "default" : "None" }
-	},
-	"Clinvar" : {
-		"vcf" : "CLNSIG",
-		"type" : "clinical",
-		"values" : {
-			"Affects" : "None",
-			"association" : "None",
-			"Benign" : 0,
-			"Benign/Likely_benign" : 1,
-			"Conflicting_interpretations_of_pathogenicity" : 3,
-			"drug_response" : "None",
-			"Likely_benign" : 2,
-			"Likely_pathogenic" : 4,
-			"not_provided" : "None",
-			"other" : "None",
-			"Pathogenic" : 6,
-			"Pathogenic/Likely_pathogenic" : 5,
-			"protective" : "None",
-			"risk_factor" : "None",
-			"Uncertain_significance" : 3
+		"Clinvar" : {
+			"vcf" : "CLNSIG",
+			"type" : "clinical",
+			"values" : {
+				"Affects" : "None",
+				"association" : "None",
+				"Benign" : "Low",
+				"Benign/Likely_benign" : "Low",
+				"Conflicting_interpretations_of_pathogenicity" : "Uncertain",
+				"drug_response" : "None",
+				"Likely_benign" : "Low",
+				"Likely_pathogenic" : "Moderate",
+				"not_provided" : "None",
+				"other" : "None",
+				"Pathogenic" : "High",
+				"Pathogenic/Likely_pathogenic" : "High",
+				"protective" : "None",
+				"risk_factor" : "None",
+				"Uncertain_significance" : "Uncertain"
+			},
+			"fct" : "get_first_value"
 		},
-		"fct" : "get_first_value"
-	},
-	"RefSeqGene" : {
-		"vcf" : "Func.refGene",
-		"type" : "gene",
-		"fct" : "get_first_value"
-	},
-	"RefSeqExonic" : {
-		"vcf" : "ExonicFunc.refGene",
-		"type" : "gene",
-		"fct" : "get_first_value"
+		"Indel_Canonic" : {
+			"vcf" : "Func.refGene",
+			"type" : "splice",
+			"values" : {
+				"downstream" : 0,
+				"exonic" : 0,
+				"exonic\\x3bsplicing" : 1,
+				"intergenic" : 0,
+				"intronic" : 0,
+				"ncRNA_exonic" : 0,
+				"ncRNA_exonic\\x3bsplicing" : 0,
+				"ncRNA_intronic" : 0,
+				"ncRNA_splicing" : 0,
+				"ncRNA_splicing\\x3bncRNA_intronic" : 0,
+				"splicing" : 1,
+				"splicing\\x3bintronic" : 1,
+				"splicing\\x3bncRNA_intronic" : 0,
+				"splicing\\x3bUTR3" : 0,
+				"splicing\\x3bUTR5" : 0,
+				"upstream" : 0,
+				"upstream\\x3bdownstream" : 0,
+				"UTR3" : 0,
+				"UTR5" : 0,
+				"UTR5\\x3bUTR3" : 0
+			},
+			"fct" : "get_first_value",
+			"opt" : { "fct" : "is_indel_splice_site", "default" : "None" }
+		},
+		"RefSeqExonic" : {
+			"vcf" : "ExonicFunc.refGene",
+			"type" : "PTC",
+			"values" : {
+				"frameshift_insertion" : "0",
+				"frameshift_deletion" : "0",
+				"frameshift_block_substitution" : "0",
+				"stopgain" : "1",
+				"stoploss" : "1",
+				"nonframeshift_insertion" : "0",
+				"nonframeshift_deletion" : "0",
+				"nonframeshift_block_substitution" : "0",
+				"nonsynonymous_SNV" : "0",
+				"synonymous_SNV" : "0",
+				"unknown" : "0"
+			},
+			"fct" : "get_first_value"
+		}
 	}
 }
