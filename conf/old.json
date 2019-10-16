@@ -198,17 +198,17 @@
 			"vcf" : "ExonicFunc.refGene",
 			"type" : "PTC",
 			"values" : {
-				"frameshift_insertion" : "0",
-				"frameshift_deletion" : "0",
-				"frameshift_block_substitution" : "0",
-				"stopgain" : "1",
-				"stoploss" : "1",
-				"nonframeshift_insertion" : "0",
-				"nonframeshift_deletion" : "0",
-				"nonframeshift_block_substitution" : "0",
-				"nonsynonymous_SNV" : "0",
-				"synonymous_SNV" : "0",
-				"unknown" : "0"
+				"frameshift_insertion" : 0,
+				"frameshift_deletion" : 0,
+				"frameshift_block_substitution" : 0,
+				"stopgain" : 1,
+				"stoploss" : 1,
+				"nonframeshift_insertion" : 0,
+				"nonframeshift_deletion" : 0,
+				"nonframeshift_block_substitution" : 0,
+				"nonsynonymous_SNV" : 0,
+				"synonymous_SNV" : 0,
+				"unknown" : 0
 			},
 			"fct" : "get_first_value"
 		}
