@@ -71,7 +71,7 @@ def check_annotation(vcf_infos, annot_dict):
     @summary: Chek if vcf have all annotations required from config file
     @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
     @param annot_dict: [annot_dict] Dict of fields search from config file
-    @return: [error] return None or list of fields missing
+    @return: [None|list] return None or list of fields missing
     """
     error = None
 
@@ -90,8 +90,8 @@ def check_annotation(vcf_infos, annot_dict):
 def check_split_variants(record):
     """
     @summary: Chek if vcf record is correctly splited
-    @param record: [vcf.model._record] One record of the VCF
-    @return: [None] return None or specific error
+    @param record: [vcf.model._record] Current record of the VCF
+    @return: [None|list] return None or specific error
     """
     error = None
 
@@ -111,6 +111,15 @@ def check_split_variants(record):
 ########################################
 # Functions to get value into vcf
 def cmp(info, values, opt, record=None):
+    """
+    @summary: Comparator function used in config file
+    @param vcf_infos: [vcf.reader.infos] All fields info from the VCF header
+    @param values: [dict] Dict of values used to return a result
+    @param opt: [opt] Dict of options used for this function
+    @param record: [vcf.model._record] Current record of the VCF
+    @return: [None] return None or specific error
+    """
+
     reversed = {
         "lt" : False,
         "le" : False,
@@ -119,10 +128,14 @@ def cmp(info, values, opt, record=None):
         "ge" : True,
         "gt" : True
     }
+
     od = collections.OrderedDict(sorted(values.items(), reverse=reversed[opt["op"]]))
+
     for elt in od:
         if eval(opt["op"])(float(info), float(elt)):
             return od[elt]
+            
+    return None
 
 # Is Indel Surroundig Splice Site
 def is_ISSS(info, values, opt, record=None):
