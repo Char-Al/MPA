@@ -89,11 +89,12 @@ def check_annotation(vcf_infos, annot_dict):
 ########################################
 def check_split_variants(record):
     """
-    @summary: Chek if vcf followed the specifications (only one reference) and guidelines pre-processed vcf (split variants)
+    @summary: Chek if vcf record is correctly splited
     @param record: [vcf.model._record] One record of the VCF
-    @return: [None]
+    @return: [None] return None or specific error
     """
     error = None
+
     if (len(str(record.REF).split(',')) > 1):
         if error is None:
             error = list()
