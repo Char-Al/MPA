@@ -269,12 +269,24 @@ def get_all_infos(record, annot_dict):
     """
     r_info = record.INFO
     score_utils = dict()
+    d_penality = -0.1
+    d_weight = 1
 
     for elt in annot_dict:
         # Initialise value to get info in VCF
         vcf_key = annot_dict[elt]["vcf"]
+        vcf_key = annot_dict[elt]["vcf"]
         values = annot_dict[elt]["values"] if "values" in annot_dict[elt] else None
         opt    = annot_dict[elt]["opt"] if "opt" in annot_dict[elt] else None
+
+        try:
+            penality = annot_dict[elt]["penality"]
+        except KeyError:
+            log.warning("No penality score for '{}' (default {})".format(vcf_key, d_penality))
+        try:
+            weight = annot_dict[elt]["weight"]
+        except KeyError:
+            log.warning("No weight score for '{}' (default {})".format(vcf_key, d_weight))
 
         # Initialise dict of results
         type    = annot_dict[elt]["type"]
@@ -282,6 +294,8 @@ def get_all_infos(record, annot_dict):
             score_utils[type] = list()
 
         result = eval(annot_dict[elt]["fct"])(r_info[vcf_key], values, opt, record)
+        if result is None:
+            result = penality
 
         score_utils[type].append((elt, result))
 
@@ -294,10 +308,10 @@ def get_all_scores(scores, annotation_dict):
         sum_score = 0
         available = 0
         for key, value in scores[type]:
-            if value is not None:
-                available += 1
-                sum_score += value
-                log.debug("\t- {}\t{}".format(key, value))
+            if value >= 0:
+                available += annotation_dict[key]["weight"]
+            sum_score += value * annotation_dict[key]["weight"]
+            log.debug("\t- {}\t{}\t{}".format(key, value, annotation_dict[key]["weight"]))
         log.debug("{}\t{}\t{}".format(type, sum_score, available))
         try:
             s_adjusted = (sum_score/available) if sum_score/available > 0 else 0

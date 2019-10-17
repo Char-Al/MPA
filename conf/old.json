@@ -14,8 +14,10 @@
 		"SIFT" : {
 			"type" : "missense",
 			"vcf" : "SIFT_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"T" : 0
 			},
 			"fct" : "get_first_value"
@@ -23,8 +25,10 @@
 		"PROVEAN" : {
 			"type" : "missense",
 			"vcf" : "PROVEAN_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"N" : 0
 			},
 			"fct" : "get_first_value"
@@ -32,8 +36,10 @@
 		"HVAR" : {
 			"type" : "missense",
 			"vcf" : "Polyphen2_HVAR_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"P" : 0.5,
 				"B" : 0
 			},
@@ -42,8 +48,10 @@
 		"HDIV" : {
 			"type" : "missense",
 			"vcf" : "Polyphen2_HDIV_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"P" : 0.5,
 				"B" : 0
 			},
@@ -52,8 +60,10 @@
 		"LRT" : {
 			"type" : "missense",
 			"vcf" : "LRT_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"N" : 0,
 				"U" : "None"
 			},
@@ -62,8 +72,10 @@
 		"FATHMM" : {
 			"type" : "missense",
 			"vcf" : "FATHMM_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"T" : 0
 			},
 			"fct" : "get_first_value"
@@ -71,8 +83,10 @@
 		"MetaSVM" : {
 			"type" : "missense",
 			"vcf" : "MetaSVM_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"T" : 0
 			},
 			"fct" : "get_first_value"
@@ -80,8 +94,10 @@
 		"MKL" : {
 			"type" : "missense",
 			"vcf" : "fathmm-MKL_coding_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"N" : 0
 			},
 			"fct" : "get_first_value"
@@ -89,8 +105,10 @@
 		"MetaSVM" : {
 			"type" : "missense",
 			"vcf" : "MetaSVM_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"T" : 0
 			},
 			"fct" : "get_first_value"
@@ -98,8 +116,10 @@
 		"MetaLR_pred" : {
 			"type" : "missense",
 			"vcf" : "MetaLR_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"D" : 1,
+				"D" : 10,
 				"T" : 0
 			},
 			"fct" : "get_first_value"
@@ -107,8 +127,10 @@
 		"MutationTaster" : {
 			"type" : "missense",
 			"vcf" : "MutationTaster_pred",
+			"weight" : 1,
+			"penality" : -0.1,
 			"values" : {
-				"A" : 1,
+				"A" : 10,
 				"D" : 0.6,
 				"N" : 0.2,
 				"P" : 0
@@ -117,62 +139,72 @@
 		},
 		"ADA" : {
 			"vcf" : "dbscSNV_ADA_SCORE",
+			"weight" : 3,
 			"type" : "splice",
+			"penality" : -0.5,
 			"values" : {
-				"0.6" : "High"
+				"0.6" : 10
 			},
 			"fct" : "get_first_value",
-			"opt" : { "fct" : "cmp", "op" : "ge", "default" : "low" }
+			"opt" : { "fct" : "cmp", "op" : "ge", "default" : 0 }
 		},
 		"RF" : {
 			"vcf" : "dbscSNV_RF_SCORE",
+			"weight" : 3,
 			"type" : "splice",
+			"penality" : -0.5,
 			"values" : {
-				"0.6" : "High"
+				"0.6" : 10
 			},
 			"fct" : "get_first_value",
-			"opt" : { "fct" : "cmp", "op" : "ge", "default" : "None" }
+			"opt" : { "fct" : "cmp", "op" : "ge", "default" : 0 }
 		},
 		"spliceAI" : {
 			"vcf" : "spliceai_filtered",
+			"weight" : 3,
 			"type" : "splice",
+			"penality" : -0.5,
 			"values" : {
-				"0.8" : "High",
-				"0.5" : "Moderate",
-				"0.2" : "Low"
+				"0.8" : 10,
+				"0.5" : 8,
+				"0.2" : 2
 			},
 			"fct" : "get_spliceAI",
-			"opt" : { "fct" : "cmp", "op" : "ge", "default" : "None" }
+			"opt" : { "fct" : "cmp", "op" : "ge", "default" : 0 }
 		},
 		"Clinvar" : {
 			"vcf" : "CLNSIG",
+			"weight" : 1,
 			"type" : "clinical",
+			"penality" : -1,
 			"values" : {
-				"Affects" : "None",
+				"Affects" : 1.2,
 				"association" : "None",
-				"Benign" : "Low",
-				"Benign/Likely_benign" : "Low",
-				"Conflicting_interpretations_of_pathogenicity" : "Uncertain",
+				"Benign" : 0,
+				"Benign/Likely_benign" : 0.5,
+				"Conflicting_interpretations_of_pathogenicity" : 2,
 				"drug_response" : "None",
-				"Likely_benign" : "Low",
-				"Likely_pathogenic" : "Moderate",
+				"Likely_benign" : 1,
+				"Likely_pathogenic" : 7,
 				"not_provided" : "None",
 				"other" : "None",
-				"Pathogenic" : "High",
-				"Pathogenic/Likely_pathogenic" : "High",
+				"Pathogenic" : 10,
+				"Pathogenic/Likely_pathogenic" : 9,
 				"protective" : "None",
 				"risk_factor" : "None",
-				"Uncertain_significance" : "Uncertain"
+				"Uncertain_significance" : 1.7
 			},
 			"fct" : "get_first_value"
 		},
 		"Indel_Canonic" : {
 			"vcf" : "Func.refGene",
+			"weight" : 1,
 			"type" : "splice",
+			"penality" : -1,
 			"values" : {
 				"downstream" : 0,
 				"exonic" : 0,
-				"exonic\\x3bsplicing" : 1,
+				"exonic\\x3bsplicing" : 10,
 				"intergenic" : 0,
 				"intronic" : 0,
 				"ncRNA_exonic" : 0,
@@ -180,8 +212,8 @@
 				"ncRNA_intronic" : 0,
 				"ncRNA_splicing" : 0,
 				"ncRNA_splicing\\x3bncRNA_intronic" : 0,
-				"splicing" : 1,
-				"splicing\\x3bintronic" : 1,
+				"splicing" : 10,
+				"splicing\\x3bintronic" : 10,
 				"splicing\\x3bncRNA_intronic" : 0,
 				"splicing\\x3bUTR3" : 0,
 				"splicing\\x3bUTR5" : 0,
@@ -196,13 +228,15 @@
 		},
 		"RefSeqExonic" : {
 			"vcf" : "ExonicFunc.refGene",
+			"weight" : 1,
 			"type" : "PTC",
+			"penality" : -1,
 			"values" : {
 				"frameshift_insertion" : 0,
 				"frameshift_deletion" : 0,
 				"frameshift_block_substitution" : 0,
-				"stopgain" : 1,
-				"stoploss" : 1,
+				"stopgain" : 10,
+				"stoploss" : 10,
 				"nonframeshift_insertion" : 0,
 				"nonframeshift_deletion" : 0,
 				"nonframeshift_block_substitution" : 0,
