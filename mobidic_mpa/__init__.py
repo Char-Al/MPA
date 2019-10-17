@@ -174,7 +174,7 @@ def is_ISSS(info, values, opt, record):
     """
 
     try:
-        result = ("High" if (values[info] and record.is_indel) else None)
+        result = (values[info] if (values[info] and record.is_indel) else None)
     except KeyError:
         log.error(
             "Field not recognize or missing in vcf in function 'is_ISS'. "
@@ -283,10 +283,30 @@ def get_all_infos(record, annot_dict):
 
         result = eval(annot_dict[elt]["fct"])(r_info[vcf_key], values, opt, record)
 
-        score_utils[type].append(result)
+        score_utils[type].append((elt, result))
 
     return score_utils
 ############################################################
+# Process scores
+def get_all_scores(scores, annotation_dict):
+    meta_scores = dict()
+    for type in scores:
+        sum_score = 0
+        available = 0
+        for key, value in scores[type]:
+            if value is not None:
+                available += 1
+                sum_score += value
+                log.debug("\t- {}\t{}".format(key, value))
+        log.debug("{}\t{}\t{}".format(type, sum_score, available))
+        try:
+            s_adjusted = (sum_score/available) if sum_score/available > 0 else 0
+            log.info("SCORE ADJUSTED\t{}".format(sum_score/available))
+        except ZeroDivisionError:
+            log.info("SCORE ADJUSTED\t{}".format(0))
+
+    return
+
 
 ############################################################
 def calculate_adjusted_score(scores_impact):
@@ -668,6 +688,8 @@ def main(args, logger):
 
                 # Get all scores
                 scores = get_all_infos(record, conf_dict["annotations"])
+                log.debug(scores)
+                get_all_scores(scores, conf_dict["annotations"])
                 sys.exit()
 
                 # Deleterious impact scores
