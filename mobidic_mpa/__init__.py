@@ -33,7 +33,7 @@ from operator import lt, le, eq, ne, ge, gt
 #
 ################################################################################
 
-########################################
+############################################################
 def getSoftwarePath(software, expected_folder):
     """
     @summary: Returns the path to the software from the expected_folder if it is present or from the PATH environment variable.
@@ -63,9 +63,9 @@ def wich(software):
         if os.path.exists(eval_path):
             soft_path = eval_path
     return soft_path
-########################################
+############################################################
 
-########################################
+############################################################
 def check_annotation(vcf_infos, annot_dict):
     """
     @summary: Chek if vcf have all annotations required from config file
@@ -106,9 +106,9 @@ def check_split_variants(record):
         error.append("Multi allelic variant into VCF.")
 
     return error
-########################################
+############################################################
 
-########################################
+############################################################
 # Functions to get value into vcf
 def cmp(info, values, opt, record=None):
     """
@@ -286,9 +286,9 @@ def get_all_infos(record, annot_dict):
         score_utils[type].append(result)
 
     return score_utils
-########################################
+############################################################
 
-########################################
+############################################################
 def calculate_adjusted_score(scores_impact):
     """
     @summary: Calculate the adjusted score impact from 10 annotation score
