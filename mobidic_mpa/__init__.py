@@ -247,7 +247,7 @@ def get_spliceAI(info, values=None, opt=None, record=None):
             sys.exit()
         except ValueError:
             log.error(
-                "Value of spliceAI score are not type float. "
+                "The spliceAI score values are not <float>. "
                 "Please control your VCF and spliceAI annotation or report an issue on github "
                 "(https://github.com/mobidic/MPA/issues)"
             )
@@ -257,7 +257,9 @@ def get_spliceAI(info, values=None, opt=None, record=None):
 
         result = eval(opt["fct"])(maxi, values, opt)
         return result
+########################################
 
+########################################
 def get_all_infos(record, annot_dict):
     r_info = record.INFO
     score_utils = dict()
