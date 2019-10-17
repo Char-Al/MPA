@@ -261,28 +261,31 @@ def get_spliceAI(info, values=None, opt=None, record=None):
 
 ########################################
 def get_all_infos(record, annot_dict):
+    """
+    @summary: Get all scores from config file
+    @param record: [vcf.model._record] Current record of the VCF (or None)
+    @param annot_dict: [annot_dict] Dict of fields search from config file
+    @return: [dict] return the dict containing all usefull scores
+    """
     r_info = record.INFO
     score_utils = dict()
 
     for elt in annot_dict:
-        # get intersting values
+        # Initialise value to get info in VCF
         vcf_key = annot_dict[elt]["vcf"]
-        type    = annot_dict[elt]["type"]
-
-        if type not in score_utils:
-            score_utils[type] = list()
-
         values = annot_dict[elt]["values"] if "values" in annot_dict[elt] else None
         opt    = annot_dict[elt]["opt"] if "opt" in annot_dict[elt] else None
+
+        # Initialise dict of results
+        type    = annot_dict[elt]["type"]
+        if type not in score_utils:
+            score_utils[type] = list()
 
         result = eval(annot_dict[elt]["fct"])(r_info[vcf_key], values, opt, record)
 
         score_utils[type].append(result)
 
-    log.debug("Values for variant {} : {}".format(record, score_utils))
-
-
-
+    return score_utils
 ########################################
 
 ########################################
