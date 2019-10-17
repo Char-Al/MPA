@@ -652,9 +652,9 @@ def main(args, logger):
             # Initialise output VCF
             vcf_writer = vcf.Writer(open(output, 'w'), vcf_reader)
 
-            log.info("Read the each variants")
+            log.info("Read each variants")
             for record in vcf_reader:
-                # Confirm variants are well splitted
+                # Confirm that the variant is correctly splitted
                 error = check_split_variants(record)
                 if error is not None:
                     for e in error:
