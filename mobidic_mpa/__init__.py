@@ -283,10 +283,6 @@ def get_all_infos(record, annot_dict):
             penality = annot_dict[elt]["penality"]
         except KeyError:
             log.warning("No penality score for '{}' (default {})".format(vcf_key, d_penality))
-        try:
-            weight = annot_dict[elt]["weight"]
-        except KeyError:
-            log.warning("No weight score for '{}' (default {})".format(vcf_key, d_weight))
 
         # Initialise dict of results
         type_score    = annot_dict[elt]["type"]
@@ -316,9 +312,15 @@ def compute_scores(scores, annotation_dict):
         sum_score = 0
         available = 0
         msg = ""
+        d_weight = 1
 
         for key, value in scores[type]:
-            weight = annotation_dict[key]["weight"]
+            try:
+                weight = annotation_dict[key]["weight"]
+            except KeyError:
+                weight = d_weight
+                log.warning("No weight score for '{}' (default {})".format(key, d_weight))
+
             if value >= 0:
                 available += annotation_dict[key]["weight"]
                 score_weighted = value * annotation_dict[key]["weight"]
@@ -327,7 +329,10 @@ def compute_scores(scores, annotation_dict):
                 weight = 0
             sum_score += score_weighted
 
-            msg_tmp = "\t- {0:.<18s} {1:<.2f} <= {2:<.2f} * {3:<.2f}".format(key,score_weighted,value,weight)
+            if score_weighted < 0:
+                msg_tmp = "\t- {0:.<18s} {1:<.2f} <= {2:<.2f}".format(key,score_weighted,value,weight)
+            else:
+                msg_tmp = "\t- {0:.<18s} {1:<.2f} <= {2:<.2f} * {3:<.2f}".format(key,score_weighted,value,weight)
             msg = "{}\n{}".format(msg, msg_tmp)
         try:
             s_adjusted = (sum_score/available) if sum_score/available > 0 else 0
