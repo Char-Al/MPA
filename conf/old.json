@@ -40,7 +40,7 @@
 			"penality" : -0.1,
 			"values" : {
 				"D" : 10,
-				"P" : 0.5,
+				"P" : 5,
 				"B" : 0
 			},
 			"fct" : "get_first_value"
@@ -52,7 +52,7 @@
 			"penality" : -0.1,
 			"values" : {
 				"D" : 10,
-				"P" : 0.5,
+				"P" : 5,
 				"B" : 0
 			},
 			"fct" : "get_first_value"
@@ -139,7 +139,7 @@
 		},
 		"ADA" : {
 			"vcf" : "dbscSNV_ADA_SCORE",
-			"weight" : 3,
+			"weight" : 5,
 			"type" : "splice",
 			"penality" : -0.5,
 			"values" : {
@@ -150,7 +150,7 @@
 		},
 		"RF" : {
 			"vcf" : "dbscSNV_RF_SCORE",
-			"weight" : 3,
+			"weight" : 5,
 			"type" : "splice",
 			"penality" : -0.5,
 			"values" : {
@@ -161,9 +161,9 @@
 		},
 		"spliceAI" : {
 			"vcf" : "spliceai_filtered",
-			"weight" : 3,
+			"weight" : 2,
 			"type" : "splice",
-			"penality" : -0.5,
+			"penality" : -1,
 			"values" : {
 				"0.8" : 10,
 				"0.5" : 8,
@@ -200,7 +200,7 @@
 			"vcf" : "Func.refGene",
 			"weight" : 1,
 			"type" : "splice",
-			"penality" : -1,
+			"penality" : -0.01,
 			"values" : {
 				"downstream" : 0,
 				"exonic" : 0,
