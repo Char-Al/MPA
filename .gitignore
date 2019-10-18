@@ -7,7 +7,7 @@ foo
 keke
 *.xls
 *.xlsx
-*test*
+test*
 *.gz
 *tbi
 *.docx
