@@ -158,7 +158,7 @@ def cmp(info, values, opt, record=None):
         if eval(opt["op"])(float(info), float(elt)):
             return od[elt]
 
-    return None
+    return 0
 ########################################
 
 ########################################
@@ -204,7 +204,7 @@ def get_first_value(info, values=None, opt=None, record=None):
                 return info[0]
             return values[info[0]]
         result = eval(opt["fct"])(info[0], values, opt, record)
-        if result is None:
+        if result == 0:
             return opt["default"]
         else:
             return result
@@ -289,15 +289,15 @@ def get_all_infos(record, annot_dict):
             log.warning("No weight score for '{}' (default {})".format(vcf_key, d_weight))
 
         # Initialise dict of results
-        type    = annot_dict[elt]["type"]
-        if type not in score_utils:
-            score_utils[type] = list()
+        type_score    = annot_dict[elt]["type"]
+        if type_score not in score_utils:
+            score_utils[type_score] = list()
 
         result = eval(annot_dict[elt]["fct"])(r_info[vcf_key], values, opt, record)
         if result is None:
             result = penality
 
-        score_utils[type].append((elt, result))
+        score_utils[type_score].append((elt, result))
 
     return score_utils
 ############################################################
@@ -315,16 +315,27 @@ def compute_scores(scores, annotation_dict):
         # Initialise sum and available counter
         sum_score = 0
         available = 0
+        msg = ""
 
         for key, value in scores[type]:
+            weight = annotation_dict[key]["weight"]
             if value >= 0:
                 available += annotation_dict[key]["weight"]
-            sum_score += value * annotation_dict[key]["weight"]
+                score_weighted = value * annotation_dict[key]["weight"]
+            else:
+                score_weighted = value
+                weight = 0
+            sum_score += score_weighted
 
+            msg_tmp = "\t- {0:.<18s} {1:<.2f} <= {2:<.2f} * {3:<.2f}".format(key,score_weighted,value,weight)
+            msg = "{}\n{}".format(msg, msg_tmp)
         try:
             s_adjusted = (sum_score/available) if sum_score/available > 0 else 0
         except ZeroDivisionError:
             s_adjusted = 0
+        msg_tmp = "{0:.<10s} {1:<.2f} <= {2:<.2f}/{3:<.2f}".format(type, s_adjusted, sum_score, available)
+        msg="{}{}".format(msg_tmp, msg)
+        log.debug(msg)
 
         compute_scores.append((type, s_adjusted))
 
