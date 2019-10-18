@@ -302,24 +302,33 @@ def get_all_infos(record, annot_dict):
     return score_utils
 ############################################################
 # Process scores
-def get_all_scores(scores, annotation_dict):
-    meta_scores = dict()
+def compute_scores(scores, annotation_dict):
+    """
+    @summary: Compute all score following their weight and penality
+    @param record: [scores] Dict of scores associated to their type
+    @param annot_dict: [annot_dict] Dict of fields search from config file
+    @return: [list] return a list of tuples containing computes scores associated to their type
+    """
+    compute_scores = list()
+
     for type in scores:
+        # Initialise sum and available counter
         sum_score = 0
         available = 0
+
         for key, value in scores[type]:
             if value >= 0:
                 available += annotation_dict[key]["weight"]
             sum_score += value * annotation_dict[key]["weight"]
-            log.debug("\t- {}\t{}\t{}".format(key, value, annotation_dict[key]["weight"]))
-        log.debug("{}\t{}\t{}".format(type, sum_score, available))
+
         try:
             s_adjusted = (sum_score/available) if sum_score/available > 0 else 0
-            log.info("SCORE ADJUSTED\t{}".format(sum_score/available))
         except ZeroDivisionError:
-            log.info("SCORE ADJUSTED\t{}".format(0))
+            s_adjusted = 0
 
-    return
+        compute_scores.append((type, s_adjusted))
+
+    return compute_scores
 
 
 ############################################################
@@ -703,7 +712,8 @@ def main(args, logger):
                 # Get all scores
                 scores = get_all_infos(record, conf_dict["annotations"])
                 log.debug(scores)
-                get_all_scores(scores, conf_dict["annotations"])
+                c_scores = compute_scores(scores, conf_dict["annotations"])
+                log.debug(c_scores)
                 sys.exit()
 
                 # Deleterious impact scores
