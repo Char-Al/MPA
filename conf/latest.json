@@ -10,7 +10,42 @@
 				"get_spliceAI"
 			]
 	},
+	"type" : {
+		"missense" : {
+			"weight": 2,
+			"penality": -0.5
+		},
+		"splice" : {
+			"weight": 2,
+			"penality": -0.5
+		},
+		"clinical" : {
+			"weight": 5,
+			"penality": -1
+		},
+		"PTC" : {
+			"weight": 2,
+			"penality": 0
+		},
+		"popFreq" : {
+			"weight" : 1,
+			"penality" : -0
+		}
+	},
 	"annotations" : {
+		"GnomAD" : {
+			"type" : "popFreq",
+			"vcf" : "gnomAD_genome_ALL",
+			"weight" : 1,
+			"penality" : -0.1,
+			"values" : {
+				"0.0001" : 9,
+				"0.001" : 6,
+				"0.01" : 2
+			},
+			"fct" : "get_first_value",
+			"opt" : { "fct" : "cmp", "op" : "le", "default" : 10 }
+		},
 		"SIFT" : {
 			"type" : "missense",
 			"vcf" : "SIFT_pred",
@@ -65,7 +100,7 @@
 			"values" : {
 				"D" : 10,
 				"N" : 0,
-				"U" : "None"
+				"U" : null
 			},
 			"fct" : "get_first_value"
 		},
@@ -141,7 +176,7 @@
 			"vcf" : "dbscSNV_ADA_SCORE",
 			"weight" : 20,
 			"type" : "splice",
-			"penality" : -0.5,
+			"penality" : -0.1,
 			"values" : {
 				"0.6" : 10
 			},
@@ -152,7 +187,7 @@
 			"vcf" : "dbscSNV_RF_SCORE",
 			"weight" : 20,
 			"type" : "splice",
-			"penality" : -0.5,
+			"penality" : -0.1,
 			"values" : {
 				"0.6" : 10
 			},
@@ -174,25 +209,39 @@
 		},
 		"Clinvar" : {
 			"vcf" : "CLNSIG",
-			"weight" : 1,
+			"weight" : 4,
 			"type" : "clinical",
 			"penality" : -1,
 			"values" : {
 				"Affects" : 1.2,
-				"association" : "None",
+				"association" : null,
 				"Benign" : 0,
 				"Benign/Likely_benign" : 0.5,
 				"Conflicting_interpretations_of_pathogenicity" : 2,
-				"drug_response" : "None",
+				"drug_response" : null,
 				"Likely_benign" : 1,
-				"Likely_pathogenic" : 7,
-				"not_provided" : "None",
-				"other" : "None",
+				"Likely_pathogenic" : 8,
+				"not_provided" : null,
+				"other" : null,
 				"Pathogenic" : 10,
-				"Pathogenic/Likely_pathogenic" : 9,
-				"protective" : "None",
-				"risk_factor" : "None",
+				"Pathogenic/Likely_pathogenic" : 9.5,
+				"protective" : null,
+				"risk_factor" : null,
 				"Uncertain_significance" : 1.7
+			},
+			"fct" : "get_first_value"
+		},
+		"intervar" : {
+			"vcf" : "InterVar_automated",
+			"weight" : 1,
+			"type" : "clinical",
+			"penality" : -1,
+			"values" : {
+				"Benign" : 0,
+				"Uncertain_significance" : 5,
+				"Likely_benign" : 2,
+				"Likely_pathogenic" : 8,
+				"Pathogenic" : 10
 			},
 			"fct" : "get_first_value"
 		},
@@ -224,7 +273,7 @@
 				"UTR5\\x3bUTR3" : 0
 			},
 			"fct" : "get_first_value",
-			"opt" : { "fct" : "is_ISSS", "default" : "None", "help": "Is Indel Surroundig Splice Site" }
+			"opt" : { "fct" : "is_ISSS", "default" : null, "help": "Is Indel Surroundig Splice Site" }
 		},
 		"RefSeqExonic" : {
 			"vcf" : "ExonicFunc.refGene",
@@ -232,17 +281,17 @@
 			"type" : "PTC",
 			"penality" : -1,
 			"values" : {
-				"frameshift_insertion" : 0,
-				"frameshift_deletion" : 0,
-				"frameshift_block_substitution" : 0,
-				"stopgain" : 10,
-				"stoploss" : 10,
-				"nonframeshift_insertion" : 0,
-				"nonframeshift_deletion" : 0,
-				"nonframeshift_block_substitution" : 0,
-				"nonsynonymous_SNV" : 0,
-				"synonymous_SNV" : 0,
-				"unknown" : 0
+				"frameshift_insertion" : null,
+				"frameshift_deletion" : null,
+				"frameshift_block_substitution" : null,
+				"stopgain" : 9,
+				"stoploss" : 9,
+				"nonframeshift_insertion" : null,
+				"nonframeshift_deletion" : null,
+				"nonframeshift_block_substitution" : null,
+				"nonsynonymous_SNV" : null,
+				"synonymous_SNV" : null,
+				"unknown" : null
 			},
 			"fct" : "get_first_value"
 		}

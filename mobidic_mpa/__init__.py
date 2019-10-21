@@ -154,11 +154,13 @@ def cmp(info, values, opt, record=None):
         )
         sys.exit()
 
-    for elt in od:
-        if eval(opt["op"])(float(info), float(elt)):
-            return od[elt]
-
-    return 0
+    if info is not None:
+        for elt in od:
+            if eval(opt["op"])(float(info), float(elt)):
+                return od[elt]
+        return 0
+    else:
+        return None
 ########################################
 
 ########################################
@@ -196,18 +198,15 @@ def get_first_value(info, values=None, opt=None, record=None):
     @param record: [vcf.model._record] Current record of the VCF (or None)
     @return: [None|str] return None or raw value or converted value from this field
     """
-    if info[0] is None:
-        return None
+    if opt is None:
+        if values is None or info[0] is None:
+            return info[0]
+        return values[info[0]]
+    result = eval(opt["fct"])(info[0], values, opt, record)
+    if result is None:
+        return opt["default"]
     else:
-        if opt is None:
-            if values is None:
-                return info[0]
-            return values[info[0]]
-        result = eval(opt["fct"])(info[0], values, opt, record)
-        if result == 0:
-            return opt["default"]
-        else:
-            return result
+        return result
 ########################################
 
 ########################################
@@ -256,6 +255,10 @@ def get_spliceAI(info, values=None, opt=None, record=None):
         maxi = max(DS_AG, DS_AL, DS_DG, DS_DL)
 
         result = eval(opt["fct"])(maxi, values, opt)
+        if result is None:
+            return opt["default"]
+        else:
+            return result
         return result
 ########################################
 
@@ -269,20 +272,12 @@ def get_all_infos(record, annot_dict):
     """
     r_info = record.INFO
     score_utils = dict()
-    d_penality = -0.1
-    d_weight = 1
 
     for elt in annot_dict:
         # Initialise value to get info in VCF
         vcf_key = annot_dict[elt]["vcf"]
-        vcf_key = annot_dict[elt]["vcf"]
         values = annot_dict[elt]["values"] if "values" in annot_dict[elt] else None
         opt    = annot_dict[elt]["opt"] if "opt" in annot_dict[elt] else None
-
-        try:
-            penality = annot_dict[elt]["penality"]
-        except KeyError:
-            log.warning("No penality score for '{}' (default {})".format(vcf_key, d_penality))
 
         # Initialise dict of results
         type_score    = annot_dict[elt]["type"]
@@ -290,8 +285,7 @@ def get_all_infos(record, annot_dict):
             score_utils[type_score] = list()
 
         result = eval(annot_dict[elt]["fct"])(r_info[vcf_key], values, opt, record)
-        if result is None:
-            result = penality
+        log.debug("{} -> {}".format(elt,r_info[vcf_key]))
 
         score_utils[type_score].append((elt, result))
 
@@ -313,6 +307,7 @@ def compute_scores(scores, annotation_dict):
         available = 0
         msg = ""
         d_weight = 1
+        d_penality = -0.1
 
         for key, value in scores[type]:
             try:
@@ -321,24 +316,32 @@ def compute_scores(scores, annotation_dict):
                 weight = d_weight
                 log.warning("No weight score for '{}' (default {})".format(key, d_weight))
 
-            if value >= 0:
+            try:
+                penality = annotation_dict[key]["penality"]
+            except KeyError:
+                log.warning("No penality score for '{}' (default {})".format(vcf_key, d_penality))
+
+            if value is not None:
                 available += annotation_dict[key]["weight"]
                 score_weighted = value * annotation_dict[key]["weight"]
             else:
-                score_weighted = value
+                score_weighted = annotation_dict[key]["penality"]
                 weight = 0
+
             sum_score += score_weighted
 
-            if score_weighted < 0:
-                msg_tmp = "\t- {0:.<18s} {1:<.2f} <= {2:<.2f}".format(key,score_weighted,value,weight)
+            if score_weighted <= 0:
+                msg_tmp = "\t- {0:.<18s} {1:<.2f} <= {2:s}".format(key,score_weighted,str(value))
             else:
                 msg_tmp = "\t- {0:.<18s} {1:<.2f} <= {2:<.2f} * {3:<.2f}".format(key,score_weighted,value,weight)
             msg = "{}\n{}".format(msg, msg_tmp)
-        try:
+
+        if available == 0:
+            s_adjusted = None
+            msg_tmp = "{0:.<10s} {1:s}".format(type, str(s_adjusted))
+        else:
             s_adjusted = (sum_score/available) if sum_score/available > 0 else 0
-        except ZeroDivisionError:
-            s_adjusted = 0
-        msg_tmp = "{0:.<10s} {1:<.2f} <= {2:<.2f}/{3:<.2f}".format(type, s_adjusted, sum_score, available)
+            msg_tmp = "{0:.<10s} {1:<.2f} <= {2:<.2f}/{3:<.2f}".format(type, s_adjusted, sum_score, available)
         msg="{}{}".format(msg_tmp, msg)
         log.debug(msg)
 
@@ -667,6 +670,9 @@ def main(args, logger):
     ########################################
     # Read the vcf
     try:
+        num_lines = sum(1 for line in open(input) if not line.startswith("#") )
+        toolbar_width = 50
+        keep = num_lines/toolbar_width
         f = open(input, 'r')
     except (IOError):
         log.error(
@@ -711,8 +717,28 @@ def main(args, logger):
             # Initialise output VCF
             vcf_writer = vcf.Writer(open(output, 'w'), vcf_reader)
 
+            toolbar_width = 50
             log.info("Read each variants")
+            sys.stdout.write("[%s]" % (" " * toolbar_width))
+            sys.stdout.flush()
+            sys.stdout.write("\b" * (toolbar_width+1))
+            cnt_var = 0
+            cnt_write = 0
             for record in vcf_reader:
+                cnt_var += 1
+                if cnt_var >= keep :
+                    cnt_var = 0
+                    t = keep
+                    while t < 1:
+                        sys.stdout.write("-")
+                        sys.stdout.flush()
+                        cnt_write += 1
+                        t += keep
+                    if(cnt_write < toolbar_width):
+                        cnt_write += 1
+                        sys.stdout.write("-")
+                        sys.stdout.flush()
+
                 # Confirm that the variant is correctly splitted
                 error = check_split_variants(record)
                 if error is not None:
@@ -730,94 +756,129 @@ def main(args, logger):
                 log.debug(scores)
                 c_scores = compute_scores(scores, conf_dict["annotations"])
                 log.debug(c_scores)
-                sys.exit()
+                max_score = ("",0)
+                m = 0
+                t = 0
+                for sc in c_scores:
+                    if sc[1] is not None:
+                        if (max_score[1] < sc[1]):
+                            max_score=sc
 
-                # Deleterious impact scores
-                impacts_scores = {
-                    "SIFT" : record.INFO['SIFT_pred'][0],
-                    "HDIV" : record.INFO['Polyphen2_HDIV_pred'][0],
-                    "HVAR" : record.INFO['Polyphen2_HVAR_pred'][0],
-                    "LRT" : record.INFO['LRT_pred'][0],
-                    "MutationTaster" : record.INFO['MutationTaster_pred'][0],
-                    "FATHMM" : record.INFO['FATHMM_pred'][0],
-                    "PROVEAN" : record.INFO['PROVEAN_pred'][0],
-                    "MKL" : record.INFO['fathmm-MKL_coding_pred'][0],
-                    "SVM" : record.INFO['MetaSVM_pred'][0],
-                    "LR" : record.INFO['MetaLR_pred'][0]
-                }
+                        m += sc[1] * conf_dict["type"][sc[0]]["weight"]
+                        t += conf_dict["type"][sc[0]]["weight"]
+                    else:
+                        m += conf_dict["type"][sc[0]]["penality"]
+                        t += 1
 
-                # Splicing impact scores
-                splices_scores = {
-                    "ADA": record.INFO['dbscSNV_ADA_SCORE'][0],
-                    "RF": record.INFO['dbscSNV_RF_SCORE'][0],
-                    "spliceAI":record.INFO['spliceai_filtered'][0],
-                }
 
-                # MPA aggregate the information to predict some effects
-                meta_impact = {
-                    "clinvar_pathogenicity": False,
-                    "stop_impact": False,
-                    "splice_impact": False,
-                    "frameshift_impact": False,
-                    "unknown_impact": False
-                }
+                # max(c_scores,key=itemgetter(1))
+                # m = 0
+                # t = 0
+                # for c in c_scores:
+                #     m += c[1]
+                #     t += 1
 
-                # Calculate adjusted score for each variants
-                adjusted_score = calculate_adjusted_score(impacts_scores)
-
-                # Determine if variant is well annotated with clinvar as deleterious
-                meta_impact["clinvar_pathogenicity"] = is_clinvar_pathogenic(record.INFO['CLNSIG'][0])
-
-                # Determine the impact on splicing
-                meta_impact["splice_impact"] = is_splice_impact(splices_scores, record.is_indel, record.INFO['Func.refGene'][0])
-
-                # Determine the exonic impact
-                match_exonic = re.search("exonic", record.INFO['Func.refGene'][0], re.IGNORECASE)
-                if(match_exonic and record.INFO['ExonicFunc.refGene'][0] != None):
-                    # Determine the stop impact
-                    meta_impact["stop_impact"] = is_stop_impact(record.INFO['ExonicFunc.refGene'][0])
-
-                    # Determine the frameshift impact
-                    meta_impact["frameshift_impact"] = is_frameshift_impact(record.INFO['ExonicFunc.refGene'][0])
-
-                    # Determine the missense impact
-                    meta_impact["missense_impact"] = is_missense_impact(record.INFO['ExonicFunc.refGene'][0], adjusted_score["adjusted"])
-
-                    # Determine if unknown impact (misunderstand gene)
-                    # NOTE: /!\ Be careful to updates regularly your databases /!\
-                    meta_impact["unknown_impact"] = is_unknown_impact(record.INFO['ExonicFunc.refGene'][0])
-                log.debug("Meta score : " + str(meta_impact))
-
-                # Ranking of variants
-                rank = False
-                record.INFO['MPA_impact'] = ""
-                for impact in meta_impact:
-                    if (meta_impact[impact]):
-                        record.INFO['MPA_impact'] = record.INFO['MPA_impact'] + impact + ","
-                        if(meta_impact[impact]<rank or not rank):
-                            rank = meta_impact[impact]
-                            if(impact == "unknown_impact" or impact == "missense_impact"):
-                                adjusted_score["final_score"] = adjusted_score["adjusted"]
-                            elif(impact == "splice_impact" and meta_impact["splice_impact"] == 6):
-                                adjusted_score["final_score"] = 6
-                            elif(impact == "splice_impact" and meta_impact["splice_impact"] == 8):
-                                adjusted_score["final_score"] = 2
-                            else:
-                                adjusted_score["final_score"] = 10
-
-                # if not ranking default value 10
-                if not rank:
-                    rank = 10
-                    record.INFO['MPA_impact'] = "NULL,"
-                    adjusted_score["final_score"] = adjusted_score["adjusted"]
-
-                log.debug("Ranking : " + str(rank))
-
-                # write vcf output
-                record.INFO['MPA_impact'] = record.INFO['MPA_impact'][:-1]
-                record.INFO['MPA_ranking'] = rank
-                for sc in adjusted_score:
-                    record.INFO['MPA_' + sc] = adjusted_score[sc]
+                record.INFO['MPA_impact'] = max_score[0]
+                record.INFO['MPA_final_score'] = max_score[1]
+                record.INFO['MPA_deleterious'] = c_scores
+                try:
+                    record.INFO['MPA_ranking'] = float(m)/float(t) if float(m)/float(t) >=0 else 0
+                except ZeroDivisionError:
+                    record.INFO['MPA_ranking'] = None
+                # sys.exit()
+                #
+                # # Deleterious impact scores
+                # impacts_scores = {
+                #     "SIFT" : record.INFO['SIFT_pred'][0],
+                #     "HDIV" : record.INFO['Polyphen2_HDIV_pred'][0],
+                #     "HVAR" : record.INFO['Polyphen2_HVAR_pred'][0],
+                #     "LRT" : record.INFO['LRT_pred'][0],
+                #     "MutationTaster" : record.INFO['MutationTaster_pred'][0],
+                #     "FATHMM" : record.INFO['FATHMM_pred'][0],
+                #     "PROVEAN" : record.INFO['PROVEAN_pred'][0],
+                #     "MKL" : record.INFO['fathmm-MKL_coding_pred'][0],
+                #     "SVM" : record.INFO['MetaSVM_pred'][0],
+                #     "LR" : record.INFO['MetaLR_pred'][0]
+                # }
+                #
+                # # Splicing impact scores
+                # splices_scores = {
+                #     "ADA": record.INFO['dbscSNV_ADA_SCORE'][0],
+                #     "RF": record.INFO['dbscSNV_RF_SCORE'][0],
+                #     "spliceAI":record.INFO['spliceai_filtered'][0],
+                # }
+                #
+                # # MPA aggregate the information to predict some effects
+                # meta_impact = {
+                #     "clinvar_pathogenicity": False,
+                #     "stop_impact": False,
+                #     "splice_impact": False,
+                #     "frameshift_impact": False,
+                #     "unknown_impact": False
+                # }
+                #
+                # # Calculate adjusted score for each variants
+                # adjusted_score = calculate_adjusted_score(impacts_scores)
+                #
+                # # Determine if variant is well annotated with clinvar as deleterious
+                # meta_impact["clinvar_pathogenicity"] = is_clinvar_pathogenic(record.INFO['CLNSIG'][0])
+                #
+                # # Determine the impact on splicing
+                # meta_impact["splice_impact"] = is_splice_impact(splices_scores, record.is_indel, record.INFO['Func.refGene'][0])
+                #
+                # # Determine the exonic impact
+                # match_exonic = re.search("exonic", record.INFO['Func.refGene'][0], re.IGNORECASE)
+                # if(match_exonic and record.INFO['ExonicFunc.refGene'][0] != None):
+                #     # Determine the stop impact
+                #     meta_impact["stop_impact"] = is_stop_impact(record.INFO['ExonicFunc.refGene'][0])
+                #
+                #     # Determine the frameshift impact
+                #     meta_impact["frameshift_impact"] = is_frameshift_impact(record.INFO['ExonicFunc.refGene'][0])
+                #
+                #     # Determine the missense impact
+                #     meta_impact["missense_impact"] = is_missense_impact(record.INFO['ExonicFunc.refGene'][0], adjusted_score["adjusted"])
+                #
+                #     # Determine if unknown impact (misunderstand gene)
+                #     # NOTE: /!\ Be careful to updates regularly your databases /!\
+                #     meta_impact["unknown_impact"] = is_unknown_impact(record.INFO['ExonicFunc.refGene'][0])
+                # log.debug("Meta score : " + str(meta_impact))
+                #
+                # # Ranking of variants
+                # rank = False
+                # record.INFO['MPA_impact'] = ""
+                # for impact in meta_impact:
+                #     if (meta_impact[impact]):
+                #         record.INFO['MPA_impact'] = record.INFO['MPA_impact'] + impact + ","
+                #         if(meta_impact[impact]<rank or not rank):
+                #             rank = meta_impact[impact]
+                #             if(impact == "unknown_impact" or impact == "missense_impact"):
+                #                 adjusted_score["final_score"] = adjusted_score["adjusted"]
+                #             elif(impact == "splice_impact" and meta_impact["splice_impact"] == 6):
+                #                 adjusted_score["final_score"] = 6
+                #             elif(impact == "splice_impact" and meta_impact["splice_impact"] == 8):
+                #                 adjusted_score["final_score"] = 2
+                #             else:
+                #                 adjusted_score["final_score"] = 10
+                #
+                # # if not ranking default value 10
+                # if not rank:
+                #     rank = 10
+                #     record.INFO['MPA_impact'] = "NULL,"
+                #     adjusted_score["final_score"] = adjusted_score["adjusted"]
+                #
+                # log.debug("Ranking : " + str(rank))
+                #
+                # # write vcf output
+                # record.INFO['MPA_impact'] = record.INFO['MPA_impact'][:-1]
+                # record.INFO['MPA_ranking'] = rank
+                # for sc in adjusted_score:
+                #     record.INFO['MPA_' + sc] = adjusted_score[sc]
 
                 vcf_writer.write_record(record)
             vcf_writer.close()
+    while(cnt_write < toolbar_width):
+        cnt_write += 1
+        sys.stdout.write("-")
+        sys.stdout.flush()
+
+    sys.stdout.write("]\n")
