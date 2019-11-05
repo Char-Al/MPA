@@ -220,7 +220,7 @@
 				"Conflicting_interpretations_of_pathogenicity" : 2,
 				"drug_response" : null,
 				"Likely_benign" : 1,
-				"Likely_pathogenic" : 8,
+				"Likely_pathogenic" : 7,
 				"not_provided" : null,
 				"other" : null,
 				"Pathogenic" : 10,
@@ -228,20 +228,6 @@
 				"protective" : null,
 				"risk_factor" : null,
 				"Uncertain_significance" : 1.7
-			},
-			"fct" : "get_first_value"
-		},
-		"intervar" : {
-			"vcf" : "InterVar_automated",
-			"weight" : 1,
-			"type" : "clinical",
-			"penality" : -1,
-			"values" : {
-				"Benign" : 0,
-				"Uncertain_significance" : 5,
-				"Likely_benign" : 2,
-				"Likely_pathogenic" : 8,
-				"Pathogenic" : 10
 			},
 			"fct" : "get_first_value"
 		},
