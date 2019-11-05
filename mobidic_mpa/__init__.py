@@ -574,7 +574,7 @@ def main(args, logger):
                     record.INFO['MPA_ranking'] = float(m)/float(t) if float(m)/float(t) >=0 else 0
                 except ZeroDivisionError:
                     record.INFO['MPA_ranking'] = None
-                    
+
                 vcf_writer.write_record(record)
             vcf_writer.close()
     while(cnt_write < toolbar_width):
