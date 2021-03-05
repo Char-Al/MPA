@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (C) 2019
+# Copyright (C) 2021
 #
 
 __author__ = 'Mobidic'
@@ -148,7 +148,7 @@ def cmp(info, values, opt, record=None):
         sys.exit()
     except:
         log.error(
-            "Unknown error with 'cmp' function'. "
+            "Unknown error with 'cmp' function. "
             "Please control your config file then report an issue on github "
             "(https://github.com/mobidic/MPA/issues)"
         )
@@ -198,11 +198,14 @@ def get_first_value(info, values=None, opt=None, record=None):
     @param record: [vcf.model._record] Current record of the VCF (or None)
     @return: [None|str] return None or raw value or converted value from this field
     """
+
     if opt is None:
         if values is None or info[0] is None:
             return info[0]
         return values[info[0]]
+
     result = eval(opt["fct"])(info[0], values, opt, record)
+
     if result is None:
         return opt["default"]
     else:

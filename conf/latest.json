@@ -43,8 +43,8 @@
 				"0.001" : 6,
 				"0.01" : 2
 			},
-			"fct" : "get_first_value",
-			"opt" : { "fct" : "cmp", "op" : "le", "default" : 10 }
+			 "fct" : "cmp",
+			 "opt" : {"op" : "le", "default" : 10 }
 		},
 		"SIFT" : {
 			"type" : "missense",
