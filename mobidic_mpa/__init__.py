@@ -44,8 +44,8 @@ def check_annotation(vcf_infos, no_refseq_version=True):
 
     refSeqExt = 'refGene' if no_refseq_version else 'refGeneWithVer'
     vcf_keys = [
-        'Func.{}'.format(refSeqExt),
-        'ExonicFunc.{}'.format(refSeqExt),
+        f'Func.{refSeqExt}',
+        f'ExonicFunc.{refSeqExt}',
         'dbscSNV_ADA_SCORE',
         'dbscSNV_RF_SCORE',
         'spliceai_filtered',
@@ -59,8 +59,9 @@ def check_annotation(vcf_infos, no_refseq_version=True):
         'fathmm-MKL_coding_pred',
         'MetaSVM_pred',
         'MetaLR_pred',
-        'CLNSIG'
+        'CLNSIG',
     ]
+
 
     log.debug(vcf_keys)
 
@@ -109,7 +110,7 @@ def calculate_adjusted_score(scores_impact):
     log.debug(f"scores impact : {scores_impact}")
 
     for score, impact in scores_impact.items():
-        if(impact == "D" or impact == "A"):
+        if impact in ["D", "A"]:
             deleterious += 1
             available += 1
         elif(impact is not None):
@@ -181,9 +182,9 @@ def is_splice_impact(splices_scores, is_indel, funcRefGene):
     )
 
     # If Zscore predict splicing impact but no ADA and RF annotation
-    if(splices_scores["spliceAI"] is not None):
+    if (splices_scores["spliceAI"] is not None):
         spliceAI_split = splices_scores["spliceAI"].split("\\x3b")
-        spliceAI_annot = dict()
+        spliceAI_annot = {}
         for annot in spliceAI_split:
             annot_split = annot.split("\\x3d")
             if len(annot_split) > 1:
@@ -247,10 +248,7 @@ def is_stop_impact(exonicFuncRefGene):
     match_stoploss = re.search("stoploss", exonicFuncRefGene, re.IGNORECASE)
     match_stopgain = re.search("stopgain", exonicFuncRefGene, re.IGNORECASE)
 
-    if(match_stopgain or match_stoploss):
-        return 2
-    else:
-        return False
+    return 2 if (match_stopgain or match_stoploss) else False
 
 def is_start_impact(exonicFuncRefGene):
     """
@@ -258,10 +256,9 @@ def is_start_impact(exonicFuncRefGene):
     @param exonicFuncRefGene: [str] The exonic function predicted by RefGene
     @return: [bool] Rank (2) if is start impact; False in other cases
     """
-    match_startloss = re.search("startloss", exonicFuncRefGene, re.IGNORECASE)
-    #match_startgain = re.search("startgain", exonicFuncRefGene, re.IGNORECASE)
-
-    if(match_startloss):
+    if match_startloss := re.search(
+        "startloss", exonicFuncRefGene, re.IGNORECASE
+    ):
         return 2
     else:
         return False
@@ -295,20 +292,18 @@ def is_missense_impact(exonicFuncRefGene, adjusted_score):
     @param exonicFuncRefGene: [str] The exonic function predicted by RefGene
     @return: [int/bool] Rank () if is missense impact; False in other cases
     """
-    match_missense = re.search(
-        "nonsynonymous_SNV",
-        exonicFuncRefGene,
-        re.IGNORECASE)
-
-    if(match_missense):
-        if(adjusted_score > 6):
-            return 5
-        elif(adjusted_score > 2):
-            return 7
-        else:
-            return 9
-    else:
+    if not (
+        match_missense := re.search(
+            "nonsynonymous_SNV", exonicFuncRefGene, re.IGNORECASE
+        )
+    ):
         return False
+    if(adjusted_score > 6):
+        return 5
+    elif(adjusted_score > 2):
+        return 7
+    else:
+        return 9
 
 
 def is_unknown_impact(exonicFuncRefGene):
@@ -317,9 +312,7 @@ def is_unknown_impact(exonicFuncRefGene):
     @param exonicFuncRefGene: [str] The exonic function predicted by RefGene
     @return: [int/bool] Rank (10) if is unknown impact; False in other cases
     """
-    match_unknown = re.search("unknown", exonicFuncRefGene, re.IGNORECASE)
-
-    if(match_unknown):
+    if match_unknown := re.search("unknown", exonicFuncRefGene, re.IGNORECASE):
         return 10
     else:
         return False
@@ -427,6 +420,9 @@ def main(args, logger):
             sys.exit(1)
 
         log.info("Read each variants")
+        FuncKey = f'Func.{refSeqExt}'
+        ExonicFuncKey = f'ExonicFunc.{refSeqExt}'
+
         for record in tqdm.tqdm(vcf_reader, total=count):
             log.debug(str(record))
 
@@ -458,26 +454,19 @@ def main(args, logger):
                 "spliceAI": record.INFO['spliceai_filtered'][0],
             }
 
-            # MPA aggregate the information to predict some effects
+            # Calculate adjusted score for each variants
+            adjusted_score = calculate_adjusted_score(impacts_scores)
+
             meta_impact = {
-                "clinvar_pathogenicity": False,
                 "stop_impact": False,
                 "splice_impact": False,
                 "frameshift_impact": False,
                 "indel_impact": False,
-                "unknown_impact": False
+                "unknown_impact": False,
+                "clinvar_pathogenicity": is_clinvar_pathogenic(
+                    record.INFO['CLNSIG'][0]
+                ),
             }
-
-            # Calculate adjusted score for each variants
-            adjusted_score = calculate_adjusted_score(impacts_scores)
-
-            # Determine if variant is annotated with clinvar as deleterious
-            meta_impact["clinvar_pathogenicity"] = is_clinvar_pathogenic(
-                record.INFO['CLNSIG'][0]
-            )
-
-            FuncKey = f'Func.{refSeqExt}'
-            ExonicFuncKey = f'ExonicFunc.{refSeqExt}'
 
             # Determine the impact on splicing
             meta_impact["splice_impact"] = is_splice_impact(
@@ -525,21 +514,18 @@ def main(args, logger):
             # Ranking of variants
             rank = False
             record.INFO['MPA_impact'] = ""
-            for impact in meta_impact:
-                if (meta_impact[impact]):
+            for impact, value in meta_impact.items():
+                if meta_impact[impact]:
                     record.INFO['MPA_impact'] = (
                         f"{record.INFO['MPA_impact']}"
                         f"{impact},"
                     )
 
-                    if(meta_impact[impact] < rank or not rank):
+                    if value < rank or not rank:
 
                         rank = meta_impact[impact]
 
-                        if (
-                            impact == "unknown_impact" or
-                            impact == "missense_impact"
-                        ):
+                        if impact in ["unknown_impact", "missense_impact"]:
                             adjusted_score["final_score"] = \
                                 adjusted_score["adjusted"]
                         elif (
@@ -577,7 +563,7 @@ def main(args, logger):
             record.INFO['MPA_impact'] = record.INFO['MPA_impact'][:-1]
             record.INFO['MPA_ranking'] = rank
             for sc in adjusted_score:
-                record.INFO['MPA_' + sc] = adjusted_score[sc]
+                record.INFO[f'MPA_{sc}'] = adjusted_score[sc]
 
             vcf_writer.write_record(record)
         vcf_writer.close()
